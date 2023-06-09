@@ -77,7 +77,7 @@ const InsertPhotoScreen = ({ navigation }) => {
             "이미지와 시간 전송 성공",
             "이미지와 시간이 서버로 전송되었습니다."
           );
-          navigation.navigate("Ranking");
+          navigation.navigate("Register");
         }
       } catch (error) {
         Alert.alert(

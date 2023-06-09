@@ -1,7 +1,44 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity,ImageBackground,Image} from "react-native";
 
+const schedules = [
+  [0,0,0,1,0,1,0], // 8시
+  [0,0,0,1,0,1,0], // 8시 30분
+  [0,0,0,1,0,1,0], // 9시
+  [0,0,0,1,0,1,0], // 9시 30분
+  [0,1,0,1,0,1,0], // 10시
+  [0,1,0,0,0,1,0], // 10시 30분
+  [1,1,0,0,0,1,0], // 11시
+  [1,1,0,0,0,1,0], // 11시 30분
+  [1,1,0,0,0,0,0], // 12시
+  [1,1,0,0,0,0,0], // 12시 30분
+  [0,1,0,0,0,0,0], // 13시
+  [0,0,0,0,0,0,0], // 13시 30분
+  [0,0,0,1,0,0,0], // 14시
+  [0,0,0,1,0,0,0], // 14시 30분
+  [0,0,0,1,0,0,0], // 15시
+  [0,0,0,1,0,0,0], // 15시 30분
+  [0,0,0,1,0,0,0], // 16시
+  [0,0,0,1,0,0,0], // 16시 30분
+  [1,0,0,1,0,0,0], // 17시
+  [1,0,0,0,0,0,0], // 17시 30분
+  [1,0,0,0,0,0,0], // 18시
+  [0,0,0,0,0,0,1], // 18시 30분
+  [0,0,0,0,0,0,1], // 19시
+  [0,0,0,0,0,0,1], // 19시 30분
+  [0,0,0,0,0,0,1], // 20시
+  [0,0,0,0,0,0,0], // 20시 30분
+  [0,0,0,0,0,0,0], // 21시
+  [0,0,0,0,0,0,0], // 21시 30분
+  [0,0,0,0,1,0,0], // 22시
+  [0,0,0,0,1,0,0], // 22시 30분
+  [0,0,0,0,1,0,0], // 23시
+  [0,0,0,0,1,0,0], // 23시 30분
+  [0,0,0,0,1,0,0], // 24시
+];
+
 const RegisterScreen = ({ navigation }) => {
+
 
   return (
     <ImageBackground source={require("hotsix-react-app/assets/backgroundimg3.png")} style={styles.container}>
@@ -25,6 +62,15 @@ const RegisterScreen = ({ navigation }) => {
           <Text style={styles.loginButtonText}>ics파일로 등록하기</Text>
           <Text style={styles.Text}>캘린더 파일로 내 시간표를 등록해보세요!</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => navigation.navigate('Ranking', {schedules : schedules})}
+        >
+          <Text style={styles.loginButtonText}>시간표 우선 순위 등록하기</Text>
+          <Text style={styles.Text}>내가 원하는 시간에 우선순위를 추가해보세요!</Text>
+        </TouchableOpacity>
+
       </View>
     </ImageBackground>
   );
@@ -45,7 +91,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   buttonContainer: {
-    marginTop: 50,
+    marginTop: 30,
     width: "80%",
   },
   loginButton: {
