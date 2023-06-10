@@ -1,34 +1,8 @@
 import React, { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-  ImageBackground,
-  Alert,
-} from "react-native";
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ImageBackground, Alert } from "react-native";
 import axios from "axios";
 import { handleVerification } from "./VerificationScreen";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-let axiosInstance;
-
-export const createAxiosInstance = (baseURL) => {
-  axiosInstance = axios.create({
-    baseURL: baseURL,
-    withCredentials: true,
-  });
-};
-
-export const getAxiosInstance = () => {
-  if (!axiosInstance) {
-    throw new Error(
-      "Axios instance is not created. Please call createAxiosInstance first."
-    );
-  }
-  return axiosInstance;
-};
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SERVER_URL = "http://192.168.0.240:8000/";
 
@@ -36,42 +10,12 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // 로그인 수행 버튼
   const handleLoginButtonPress = async () => {
-    try {
-      const response = await axios.post(`${SERVER_URL}/user/login/`, {
-        email: email,
-        password: password,
-      });
-
-      if (response.status === 200) {
-        Alert.alert("로그인 성공!");
-        //console.log(response.headers["set-cookie"]);
-        const token =
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im9zaDk0MjMwMzE1QGdtYWlsLmNvbSIsImV4cCI6MTY4NjMxNTg0MiwiaWF0IjoxNjg2MzEyMjQyfQ.yv4PqHYR7u5BiRcEtnrt9B4cIU1OpvtGVFFL85RYWIY";
-        //const token = response.headers["set-cookie"];
-        AsyncStorage.setItem("jwtToken", JSON.stringify(token)); // AsyncStorage에 jwtToken이라는 키로 토큰 저장
-
-        createAxiosInstance(SERVER_URL); // 로그인 성공 후 axios 인스턴스 생성
-        navigation.navigate("Main", { token });
-      } else if (response.status === 401) {
-        // 이메일 인증 완료 전일 때
-        Alert.alert("로그인 실패. 이메일 인증을 완료해주세요");
-        navigation.navigate("Verification", { email: email });
-        handleVerification(); // 이메일 재전송 요청
-      } else {
-        Alert.alert("로그인 실패. 아이디와 패스워드를 확인해주세요.");
-      }
-    } catch (error) {
-      console.error(error);
-    }
+    // 로그인 처리 로직...
   };
 
   return (
-    <ImageBackground
-      source={require("hotsix-react-app/assets/backgroundimg1.png")}
-      style={styles.container}
-    >
+    <ImageBackground source={require("hotsix-react-app/assets/backgroundimg1.png")} style={styles.container}>
       <View style={styles.contentContainer}>
         <Text style={styles.title}>로그인</Text>
         <TextInput
@@ -96,6 +40,8 @@ const LoginScreen = ({ navigation }) => {
         <TouchableOpacity>
           <Text style={styles.resetPasswordText}>비밀번호 찾기</Text>
         </TouchableOpacity>
+
+   
       </View>
     </ImageBackground>
   );
@@ -112,9 +58,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 300,
     marginTop: 120,
-    paddingHorizontal: 10,
-    paddingVertical: 20,
-    borderRadius: 15,
+    paddingHorizontal:10,
+    paddingVertical:20,
+    borderRadius:15,
     backgroundColor: "#ffffff",
     elevation: 5,
   },
@@ -150,4 +96,5 @@ const styles = StyleSheet.create({
     color: "#3679A4",
   },
 });
+
 export default LoginScreen;

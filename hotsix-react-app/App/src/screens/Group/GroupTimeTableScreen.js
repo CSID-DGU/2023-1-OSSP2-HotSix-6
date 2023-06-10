@@ -1,51 +1,33 @@
-import React, { useState, useEffect } from "react";
-import {
-  Alert,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
-import { useRoute } from "@react-navigation/native";
-import TimeTable, { generateTimeTableData } from "react-native-timetable";
-import { addMinutes } from "date-fns";
-import moment from "moment";
-import axios from "axios";
-import { useNavigation } from "@react-navigation/native";
-
+import { useRoute } from '@react-navigation/native';
+import { addMinutes } from 'date-fns';
+import moment from 'moment';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 //시간표를 누르면 그것들을 배열에 추가하거나 제거한다.
 
-const GroupTimeTableScreen = () => {
-  const SERVER_URL = "http://192.168.203.24:8000";
-  const navigation = useNavigation();
-  const [group, setGroup] = useState({
-    Group_Code: 12345,
-    Group_Name: "Example Group",
-  });
+const GroupTimeTableScreen = ({ navigation }) => {
+  const route = useRoute();
+
+  const { group } = route.params;
   React.useLayoutEffect(() => {
     navigation.setOptions({
       title: group.Group_Name,
       headerStyle: {
-        backgroundColor: "#3679A4",
+        backgroundColor: '#3679A4',
       },
-      headerTintColor: "#ffffff",
+      headerTintColor: '#ffffff',
       headerTitleStyle: {
-        fontWeight: "bold",
+        fontWeight: 'bold',
       },
     });
   }, [navigation, group]);
 
-  const route = useRoute();
-  //const { schedules } = route.params;
+  const { schedules } = route.params;
   const [events, setEvents] = useState([]);
   const [selectedEvents, setSelectedEvents] = useState([]);
-  const [schedules, setSchedules] = useState([[]]);
-  const { groupCode } = route.params;
 
-  console.log(groupCode);
   const getTimeIndex = (time) => {
-    const [hours, minutes] = time.split(":");
+    const [hours, minutes] = time.split(':');
     const totalMinutes = parseInt(hours, 10) * 60 + parseInt(minutes, 10);
     return (totalMinutes - 480) / 30;
   };
@@ -69,21 +51,21 @@ const GroupTimeTableScreen = () => {
 
   const printSelectedEventsInfo = () => {
     const schedule = {};
-    const weekDays = ["월", "화", "수", "목", "금", "토", "일"];
+    const weekDays = ['월', '화', '수', '목', '금', '토', '일'];
 
     selectedEvents.forEach((selectedEvent) => {
       const { startTime, endTime, Date1 } = selectedEvent;
       const day = weekDays[Date1];
 
       if (!startTime || !endTime) {
-        console.log("Invalid event time:", selectedEvent);
+        console.log('Invalid event time:', selectedEvent);
         return;
       }
 
       const start = moment.utc(startTime);
       const end = moment.utc(endTime);
 
-      const str_idx = getTimeIndex(start.format("HH:mm"));
+      const str_idx = getTimeIndex(start.format('HH:mm'));
       const time_len = Math.round(
         moment.duration(end.diff(start)).asMinutes() / 30
       );
@@ -94,34 +76,10 @@ const GroupTimeTableScreen = () => {
 
       schedule[day].push([str_idx, time_len]);
     });
+    console.log(schedule);
   };
-  //tests
 
-  useEffect(() => {
-    const fetchSchedules = async () => {
-      try {
-        setSchedules(test);
-        const response = await axios.get(
-          `${SERVER_URL}/group/view-group-table/${groupCode}`
-        );
-        if (response.status === 200) {
-          setSchedules(response.data.integrated_table);
-        } else {
-          console.error("Failed to fetch schedules:", response);
-        }
-      } catch (error) {
-        console.error("Failed to fetch schedules:", error);
-      }
-    };
-    if (groupCode) {
-      fetchSchedules();
-    }
-  }, [groupCode]);
   // 전 화면에서 schedules 받아서 시간표에서 "1" 공강으로 인식 시키기
-  useEffect(() => {
-    console.log(schedules);
-  }, [schedules]);
-
   useEffect(() => {
     const handleTimetable = (schedules) => {
       const generatedEvents = [];
@@ -157,7 +115,7 @@ const GroupTimeTableScreen = () => {
 
     // 데이터 값 뽑아서 각각 startTime, endTime, Date1 에 저장
     const createEvent = (start, end, i, val) => {
-      const date = new Date("2023-05-01T00:00:00.000Z");
+      const date = new Date('2023-05-01T00:00:00.000Z');
       const startTime = addMinutes(date, start + 480);
       const endTime = addMinutes(date, end + 480);
       const Date1 = i;
@@ -184,15 +142,15 @@ const GroupTimeTableScreen = () => {
   // 화면에 값 띄우기
   const renderGridItem = ({ item, index }) => {
     console.log(item);
-    console.log("why");
+    console.log('why');
     const start = moment.utc(item.startTime);
-    const starttime = start.format("HH:mm");
+    const starttime = start.format('HH:mm');
 
     const end = moment.utc(item.endTime);
-    const endtime = end.format("HH:mm");
+    const endtime = end.format('HH:mm');
 
     const Date1 = item.Date1;
-    const Date2 = ["월", "화", "수", "목", "금", "토", "일"];
+    const Date2 = ['월', '화', '수', '목', '금', '토', '일'];
     const viewdate = Date2[Date1];
 
     const duration = (moment.duration(end.diff(start)).asMinutes() * 16) / 24;
@@ -223,13 +181,6 @@ const GroupTimeTableScreen = () => {
         ]}
       >
         <Text style={styles.eventButtonText}>{viewdate}</Text>
-        <Text style={styles.eventButtonTextTwo}>
-          {item.value === 0
-            ? null
-            : item.value >= 2
-            ? `${item.value / 2}명`
-            : `${item.value}명`}
-        </Text>
       </TouchableOpacity>
     );
   };
@@ -243,7 +194,7 @@ const GroupTimeTableScreen = () => {
           <Text key={day} style={styles.dayText}>
             {moment()
               .day(day + 1)
-              .format("ddd")}
+              .format('ddd')}
           </Text>
         ))}
       </View>
@@ -253,7 +204,7 @@ const GroupTimeTableScreen = () => {
             <Text key={hour} style={styles.timeText}>
               {moment()
                 .hour(hour + 8)
-                .format("HH:00")}
+                .format('HH:00')}
             </Text>
           ))}
         </View>
@@ -265,6 +216,9 @@ const GroupTimeTableScreen = () => {
           ))}
         </View>
       </View>
+      <TouchableOpacity style={styles.checkButton}>
+        <Text style={styles.checkButtonText}>확인</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -275,13 +229,13 @@ const styles = StyleSheet.create({
   titleContainer: {
     paddingTop: 40,
     paddingBottom: 20,
-    backgroundColor: "#00bfff",
+    backgroundColor: '#00bfff',
   },
   title: {
-    textAlign: "center",
-    fontWeight: "bold",
+    textAlign: 'center',
+    fontWeight: 'bold',
     fontSize: 20,
-    color: "#FFFFFF",
+    color: '#FFFFFF',
   },
   timetableContainer: {
     flex: 1,
@@ -290,110 +244,104 @@ const styles = StyleSheet.create({
     paddingRight: 20,
   },
   timeline: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     bottom: 0,
     width: 50,
-    backgroundColor: "#f0f0f0",
-    justifyContent: "space-evenly",
-    alignItems: "center",
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
     paddingHorizontal: 5,
   },
   timelineLabel: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   eventBlock: {
-    position: "absolute",
+    position: 'absolute',
     left: 50,
     right: 0,
-    backgroundColor: "#f9c2ff",
+    backgroundColor: '#f9c2ff',
     padding: 10,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
   },
   eventTime: {
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   eventTitle: {
     fontSize: 16,
   },
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   header: {
-    flexDirection: "row",
-    borderBottomColor: "#ccc",
+    flexDirection: 'row',
+    borderBottomColor: '#ccc',
     borderBottomWidth: 1,
     padding: 10,
   },
   timeText: {
     flex: 1,
-    textAlign: "center",
-    color: "#888",
+    textAlign: 'center',
+    color: '#888',
   },
   dayText: {
     flex: 1,
-    textAlign: "center",
-    fontWeight: "bold",
-    color: "#333",
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: '#333',
   },
   grid: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   timeColumn: {
     flex: 1,
-    borderRightColor: "#ccc",
+    borderRightColor: '#ccc',
     borderRightWidth: 1,
   },
   eventGrid: {
     flex: 7,
     paddingLeft: 10,
     paddingRight: 10,
-    position: "relative",
+    position: 'relative',
   },
   eventButton: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     marginLeft: 4,
-    backgroundColor: "#3399ff",
+    backgroundColor: '#3399ff',
     borderRadius: 5,
     padding: 5,
     borderWidth: 1, // 테두리 너비 설정
-    borderColor: "white", // 테두리 색상 설정
+    borderColor: 'white', // 테두리 색상 설정
   },
   eventButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  eventButtonTextTwo: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 10,
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   selectedEventButton: {
-    backgroundColor: "#0000ff",
+    backgroundColor: '#0000ff',
   },
   checkButton: {
     marginTop: 16,
-    backgroundColor: "#2196f3",
+    backgroundColor: '#2196f3',
     borderRadius: 4,
     paddingVertical: 12,
   },
   checkButtonText: {
-    textAlign: "center",
-    color: "#ffffff",
+    textAlign: 'center',
+    color: '#ffffff',
     fontSize: 16,
   },
   highValueEvent: {
-    backgroundColor: "blue",
+    backgroundColor: 'blue',
     // 추가: opacity를 item.value에 따라 조절하여 점점 진한 파란색 표시
     opacity: (item) => (item.value - 1) / 10,
   },
