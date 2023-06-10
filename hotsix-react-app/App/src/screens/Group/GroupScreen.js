@@ -1,3 +1,8 @@
+/*
+cookie라이브러리 설치하고
+수정하고
+테스트해보기
+*/
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -11,8 +16,10 @@ import { useNavigation } from "@react-navigation/native";
 import Modal from "react-native-modal";
 import axios from "axios";
 import { getAxiosInstance } from "../Login_Signup/LoginScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const GroupScreen = ({ route }) => {
-  const SERVER_URL = "http://172.30.1.76:8000/";
+  const SERVER_URL = "http://192.168.0.240:8000";
   const navigation = useNavigation();
   const email = "elena0315@naver.com"; // 이메일 수정해야함.
   const [groups, setGroups] = useState([]);
@@ -20,23 +27,29 @@ const GroupScreen = ({ route }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [isConfirmModalVisible, setConfirmModalVisible] = useState(false);
-  const token = route.params.token;
 
   useEffect(() => {
-    console.log(token); //토큰 확인할게.
-    // 사용자가 속한 그룹 이름과 그룹 코드를 가져옵니다.
-    console.log("Axios instance baseURL:", axiosInstance.defaults.baseURL);
+    const fetchData = async () => {
+      const myCookie = await AsyncStorage.getItem("jwtToken"); // AsyncStorage에서 jwtToken 가져오기
 
-    axios
-      .get(`${SERVER_URL}/group/get-group`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { email: email },
-      })
-      .then((response) => {
-        const userGroups = response.data;
-        console.log(response.data);
-        setGroups(userGroups);
-      });
+      console.log(myCookie); //토큰 확인할게.
+      // 사용자가 속한 그룹 이름과 그룹 코드를 가져옵니다.
+      console.log("Axios instance baseURL:", axiosInstance.defaults.baseURL);
+
+      axiosInstance
+        .get(`${SERVER_URL}/group/get-group/`, {
+          headers: {
+            Authorization: `Bearer ${myCookie}`,
+            Cookie: myCookie,
+          },
+        })
+        .then((response) => {
+          const userGroups = response.data;
+          console.log(response.data);
+          setGroups(userGroups);
+        });
+    };
+    fetchData();
   }, []);
 
   const toggleModal = (group) => {

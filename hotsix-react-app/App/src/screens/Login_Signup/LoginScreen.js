@@ -30,7 +30,7 @@ export const getAxiosInstance = () => {
   return axiosInstance;
 };
 
-const SERVER_URL = "http://172.30.1.76:8000/";
+const SERVER_URL = "http://192.168.0.240:8000/";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -46,8 +46,12 @@ const LoginScreen = ({ navigation }) => {
 
       if (response.status === 200) {
         Alert.alert("로그인 성공!");
-        console.log("JWT:", response.data.jwt);
-        const token = response.data.jwt;
+        //console.log(response.headers["set-cookie"]);
+        const token =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im9zaDk0MjMwMzE1QGdtYWlsLmNvbSIsImV4cCI6MTY4NjMxNTg0MiwiaWF0IjoxNjg2MzEyMjQyfQ.yv4PqHYR7u5BiRcEtnrt9B4cIU1OpvtGVFFL85RYWIY";
+        //const token = response.headers["set-cookie"];
+        AsyncStorage.setItem("jwtToken", JSON.stringify(token)); // AsyncStorage에 jwtToken이라는 키로 토큰 저장
+
         createAxiosInstance(SERVER_URL); // 로그인 성공 후 axios 인스턴스 생성
         navigation.navigate("Main", { token });
       } else if (response.status === 401) {
