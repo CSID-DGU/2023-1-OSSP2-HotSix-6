@@ -31,7 +31,7 @@ class AccountsImage(models.Model):
 
 
 class Group(models.Model):
-    group_code = models.CharField(db_column='Group_Code', primary_key=True, max_length=20, db_collation='latin1_swedish_ci')  # Field name made lowercase.
+    group_code = models.CharField(db_column='Group_Code', primary_key=True, max_length=20, db_collation='utf8mb4_0900_ai_ci')  # Field name made lowercase.
     group_name = models.CharField(db_column='Group_Name', max_length=10)  # Field name made lowercase.
     creator_id = models.ForeignKey(User, models.CASCADE, max_length=100, db_column='Creator_ID')  # Field name made lowercase.
 
@@ -51,8 +51,8 @@ class GroupMember(models.Model):
 
 
 class GroupNotice(models.Model):
-    notice_id = models.CharField(db_column='Notice_ID', primary_key=True, max_length=20)  # Field name made lowercase.
-    group_code = models.ForeignKey(Group, models.CASCADE, db_column='Group_Code')  # Field name made lowercase.
+    notice_id = models.CharField(db_column='Notice_ID', primary_key=True, max_length=20, db_collation='utf8mb4_0900_ai_ci')  # Field name made lowercase.
+    group_code = models.ForeignKey(Group, on_delete=models.CASCADE, db_column='Group_Code')  # Field name made lowercase.
     notice_title = models.CharField(db_column='Notice_Title', max_length=15, db_collation='utf8mb4_0900_ai_ci')  # Field name made lowercase.       
     notice_content = models.CharField(db_column='Notice_Content', max_length=100, db_collation='utf8mb4_0900_ai_ci', blank=True, null=True)  # Field name made lowercase.
     notice_date = models.DateField(db_column='Notice_Date')  # Field name made lowercase.

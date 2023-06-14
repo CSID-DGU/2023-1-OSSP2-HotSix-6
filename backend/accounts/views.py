@@ -4,6 +4,7 @@ import bcrypt
 import datetime
 import zlib
 import os
+import base64 ###
 
 from .ics2binaryArr import ics_to_binary_array
 from .TimeTableController.ImageFile import file_to_image
@@ -15,8 +16,10 @@ from .tokens import account_activation_token
 from .text import message
 from my_settings import SECRET_KEY, EMAIL
 from rest_framework import viewsets
+from urllib.parse import unquote
 
 from rest_framework.generics import GenericAPIView
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -103,12 +106,11 @@ class Activate(View):
                return Response({"error" : "KEY_ERROR"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def is_active(request):
-    email = request.data['email']
+    email = unquote(request.GET.get('email'))
     active = User.objects.get(email=email)
-    
-    if active.is_active == 1:
+    if active.is_active == True:
         return Response(status=status.HTTP_200_OK)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -142,30 +144,30 @@ def login(request):
         
         inputEmail = reqData['email']
         inputPW = reqData['password']
+        user = User.objects.get(email=inputEmail)
 
         # DB에 ID가 있는 여부에 따라 response
-        if User.objects.filter(email=inputEmail).exists():
-            if User.objects.filter(is_active=1):
-                getUser = User.objects.get(email=inputEmail)
-                pw = getUser.password
+        if user is not None:
+            if user.is_active == True:
+                pw = user.password
                 # ID에 맞는 PW 인지 여부에 따라 response
                 # if getUser.password == inputPW:
-                if bcrypt.checkpw(inputPW.encode("utf-8"), getUser.password.encode("utf-8")):
-                      payload = {
-                           "email" : inputEmail,
-                           "exp" : datetime.datetime.now() + datetime.timedelta(minutes=60), # 토큰 만료 시간 60분
-                           "iat" : datetime.datetime.now() # 토큰 생성
-                      }
+                if bcrypt.checkpw(inputPW.encode("utf-8"), user.password.encode("utf-8")):
+                    payload = {
+                        "email" : inputEmail,
+                        "exp" : datetime.datetime.now() - datetime.timedelta(hours=9) + datetime.timedelta(minutes=60), # 토큰 만료 시간 60분
+                        "iat" : datetime.datetime.now() - datetime.timedelta(hours=9) # 토큰 생성
+                    }
 
-                      token = jwt.encode(payload, "secretJWTKey", algorithm="HS256")
+                    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
-                      res = Response(status=status.HTTP_200_OK)
-                      res.set_cookie(key='jwt', value=True, httponly=True)
-                      res.data = {
-                           'jwt' : token
-                      }
-
-                      return res
+                    res = Response(status=status.HTTP_200_OK)
+                    res.set_cookie('jwt', token)
+                    res.data = {
+                        "jwt" : token
+                    }
+                    
+                    return res
                 else:
                     return Response(status=status.HTTP_404_NOT_FOUND)
             else:
@@ -174,39 +176,24 @@ def login(request):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-# # 로그인 유지
-# @api_view(['POST'])
-# def loginRemain(request):
-#      token = request.COOKIE.get('jwt')
-     
-#      if not token:
-#           return Response(status=status.HTTP_401_UNAUTHORIZED) 
-     
-#      # token 유효성 검사
-#      try:
-#           payload = jwt.decode(token, "SecretJWTKey", algorithms=['HS256'])
-
-#      except jwt.ExpiredSignatureError:
-#           return Response(status=status.HTTP_401_UNAUTHORIZED)
-     
-#      # 사용자 인증
-#      user = User.objects.filter(email=payload['email']).first()
-#      serializer = UserDataSerializer(user)
-
-#      return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
-
 def login_check(func):
-    def wrapper(self, request, *args, **kwargs):
+    def wrapper(request, *args, **kwargs):
+        if request.method == 'POST' or request.method == 'PUT':
+            access_token = request.data['jwt']
+        else:
+            access_token = request.GET.get('jwt')
         try:
-            access_token = request.COOKIE.get('jwt')
+            # access_token = request.COOKIES.get('jwt')
 
             if not access_token:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
             
-            payload = jwt.decode(access_token, "SecretJWTKey", algorithms=['HS256'])
+            payload = jwt.decode(access_token, SECRET_KEY, algorithms=['HS256'])
 
-            user = User.objects.filter(email=payload['email']).first()
+            user = User.objects.get(pk=payload['email'])
             serializer = UserDataSerializer(user)
+            
+            request.email = user.email
 
         except jwt.ExpiredSignatureError:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -214,33 +201,37 @@ def login_check(func):
         except User.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        return func(self, request, *args, **kwargs)
+        return func(request, *args, **kwargs)
     return wrapper
 
 
 #로그아웃
 @api_view(['POST'])
 def logout(request):
-     res = Response(status=status.HTTP_200_OK)
-     res.delete_cookie('jwt')
-     res.data = {
-          "message" : "logout success"
-     }
+    res = Response(status=status.HTTP_200_OK)
+    res.delete_cookie('jwt')
+    res.data = {
+        "message" : "logout success"
+    }
 
-     return res
+    return res
+
 
 # 이미지 처리를 위한 클래스
 class ImageViewSet(viewsets.ModelViewSet):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
 
+
 # 사용자 시간표 초기화 (일정 없는 시간표 및 값이 없는 우선순위 딕셔너리 생성)
 @api_view(['POST'])
+@login_check
 def create_time_table(request):
     try:
         if request.method == 'POST':
             reqData = request.data
-            post_email = reqData['email']
+            # post_email = reqData['email']
+            post_email = request.email
 
             if User.objects.filter(email=post_email).exists():
                 z_table = compress_table(INIT_TIME_TABLE)
@@ -265,12 +256,14 @@ def create_time_table(request):
 
 # .ics 파일을 입력 받아 시간표 등록
 @api_view(['PUT'])
+@login_check
 def icsTimeTable(request):
     if request.method == 'PUT':
         try:
             # 데이터 받기
             reqData = request.data
-            post_email = reqData['email']
+            # post_email = reqData['email']
+            post_email = request.email
             post_file = reqData['file']
 
             decode_file = post_file.read().decode() # 파일 읽기
@@ -294,14 +287,17 @@ def icsTimeTable(request):
         except:
             return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
 
+
 # 이미지 파일을 입력 받아 시간표 등록
 @api_view(['PUT'])
+@login_check
 def imgTimeTable(request):
     if request.method == 'PUT':
         try:
             # 데이터 받기
             reqData = request.data
-            post_email = reqData['email']
+            #post_email = reqData['email']
+            post_email = request.email
 
             # viewset을 통해 저장한 이미지 파일 읽어 오기
             files = os.listdir('./images/') # images 폴더의 파일들 이름
@@ -339,14 +335,17 @@ def imgTimeTable(request):
         except:
             return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
 
+
 # 텍스트를 입력 받아 시간표 등록
 @api_view(['PUT'])
+@login_check
 def text_time_table(request):
     if request.method == 'PUT':
         try:
             # 데이터 받기
             reqData = request.data
-            post_email = reqData['email']
+            # post_email = reqData['email']
+            post_email = request.email
             post_text = reqData['text']
 
             # string -> list
@@ -376,13 +375,16 @@ def text_time_table(request):
         except:
             return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
         
+
 # 우선 순위 등록
 @api_view(['PUT'])
+@login_check
 def preference(request):
     try:
         if request.method == 'PUT':
             reqData = request.data
-            post_email = reqData['email']
+            # post_email = reqData['email']
+            post_email = request.email
             post_prefer = reqData['preference']
 
             z_prefer = compress_prefer(post_prefer)
@@ -401,9 +403,12 @@ def preference(request):
         return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
     
 
-# 시간표 조회 
+# 시간표 조회
 class ViewTimeTable(GenericAPIView):
-    def get(self, request, email):
+    @login_check
+    # def get(self, request, email):
+    def get(self, request):
+        email = request.email
         if User.objects.filter(email=email).exists():
             if not Time.objects.filter(email=email).exists():
                 return Response({"time_table":INIT_TIME_TABLE}, status=status.HTTP_204_NO_CONTENT)
@@ -414,12 +419,15 @@ class ViewTimeTable(GenericAPIView):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+
 @api_view(['DELETE'])
+@login_check
 def delTimeTable(request):
     try:
         if request.method == 'DELETE':
             reqData = request.data
-            del_email = reqData['email']
+            # del_email = reqData['email']
+            del_email = request.email
 
             if User.objects.filter(email=del_email).exists():
                 if Time.objects.filter(email=del_email).exists():
@@ -433,12 +441,14 @@ def delTimeTable(request):
     except:
         return Response(status=status.HTTP_409_CONFLICT) 
 
+
 # 이미지 파일 배열로 변환하는 함수
 def img2arr(file):
     images = []
     read_file = file.read()
     images.append(file_to_image(read_file))
     return calculate_common_time(images)
+
 
 # 우선순위 배열에 추가하는 함수
 def add_prefer(time_table, prefer):
@@ -451,6 +461,7 @@ def add_prefer(time_table, prefer):
                 time_table[time][day] = 2
     return time_table
 
+
 # 시간표 배열  압축하는 함수
 def compress_table(time_table):
     str_data = ""
@@ -459,11 +470,13 @@ def compress_table(time_table):
     z_table = zlib.compress(str_data.encode(encoding='utf-8'))
     return z_table
 
+
 # 우선 순위 압축하는 함수
 def compress_prefer(prefer):
     str_prefer = str(prefer)
     z_prefer = zlib.compress(str_prefer.encode(encoding='utf-8'))
     return z_prefer
+
 
 # 압축한 시간표 리스트로 복원하는 함수
 def restore_time(req_email=ModuleNotFoundError):
