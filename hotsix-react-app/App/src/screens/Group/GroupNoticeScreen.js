@@ -9,15 +9,16 @@ const GroupNoticeScreen = ({ route, navigation }) => {
   const [selectedNotice, setSelectedNotice] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const SERVER_URL = 'http://192.168.0.12:3001';
+  const SERVER_URL = 'http://192.168.242.164:8000';
 
   const { group } = route.params;
-  const groupcode = String(group.Group_Code);
+  const { jwt } = route.params;
+  const groupcode = group.group_code;
 
-  //헤더부분
+  // 헤더부분
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      title: group.Group_Name + ' 공지사항',
+      title: group.group_name + ' 공지사항',
       headerStyle: {
         backgroundColor: '#3679A4',
       },
@@ -33,9 +34,13 @@ const GroupNoticeScreen = ({ route, navigation }) => {
     loadNotices();
   }, []);
 
-  //API요청 : 그룹별 공지사항 로드
+  useEffect(() => {
+    console.log("공지사항:", jwt);
+  }, [jwt]);
+
+  // API요청 : 그룹별 공지사항 로드
   const loadNotices = () => {
-    axios.get(`${SERVER_URL}/group-notices?groupcode=${groupcode}`)
+    axios.get(`${SERVER_URL}/group/get-group-notice/?group_code=${encodeURIComponent(groupcode)}&jwt=${encodeURIComponent(jwt)}`)
       .then(response => {
         setNotices(response.data);
       })
@@ -43,9 +48,10 @@ const GroupNoticeScreen = ({ route, navigation }) => {
         console.error(error);
       });
   };
- //API요청 : 그룹별 공지사항 추가
+
+ // API요청 : 그룹별 공지사항 추가
   const createNotice = () => {
-    axios.post(`${SERVER_URL}/group-notices`, { title, content , groupcode})
+    axios.post(`${SERVER_URL}/group/create-group-notice/`, {notice_title : title, notice_content : content, group_code: groupcode, jwt : jwt})
       .then(response => {
         setTitle('');
         setContent('');
@@ -58,9 +64,9 @@ const GroupNoticeScreen = ({ route, navigation }) => {
       });
   };
 
-  //API요청 : 그룹별 공지사항 삭제
-  const deleteNotice = (Notice_ID) => {
-    axios.delete(`${SERVER_URL}/group-notices/${Notice_ID}`)
+  // API요청 : 그룹별 공지사항 삭제
+  const deleteNotice = (Notice_ID, jwt) => {
+    axios.post(`${SERVER_URL}/group/delete-notice/`, {notice_id : Notice_ID, jwt : jwt})
       .then(response => {
         loadNotices();
         setModalVisible(false);
@@ -68,31 +74,31 @@ const GroupNoticeScreen = ({ route, navigation }) => {
       })
       .catch(error => {
         console.error(error);
+        console.log(Notice_ID);
       });
   };
 
-  //아이템 추가
+  // 아이템 추가
   const renderNoticeItem = ({ item }) => (
     <TouchableOpacity
     onPress={() => {
       setSelectedNotice(item);
       setModalVisible(true);
+      console.log(item);
     }}
     style={styles.noticeItem}
   >
-    <Text style={styles.noticeTitle}>{item.title}</Text>
-    <Text style={styles.noticeContent}>{item.content}</Text>
+    <Text style={styles.noticeTitle}>{item.notice_title}</Text>
+    <Text style={styles.noticeContent}>{item.notice_content}</Text>
+    <Text style={styles.noticeContent}>{item.notice_id}</Text>
   </TouchableOpacity>
 );
-
-  
   return (
-       
     <View style={styles.container}>     
       <FlatList
         data={notices}
         renderItem={renderNoticeItem}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => item?.id?.toString() || Math.random().toString()}
       />
        <TouchableOpacity style={styles.addButtonContainer} onPress={() => setCreateModalVisible(true)}>
         <View style={styles.addButton}>
@@ -134,7 +140,7 @@ const GroupNoticeScreen = ({ route, navigation }) => {
               }}
             />
             <View style={styles.modalButtonContainer}>
-            <TouchableOpacity style={styles.button} onPress={() => deleteNotice(selectedNotice?.id)}>
+            <TouchableOpacity style={styles.button} onPress={() => deleteNotice(selectedNotice.notice_id, jwt)}>
                 <Text style={styles.buttonText}>삭제</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>

@@ -1,7 +1,13 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity,ImageBackground,Image} from "react-native";
 
-const RegisterScreen = ({ navigation }) => {
+const RegisterScreen = ({ navigation, route }) => {
+
+  const { jwt } = route.params;
+
+  useEffect(() => {
+    console.log("레지스터스크린 jwt:", jwt);
+  }, [jwt]);
 
   return (
     <ImageBackground source={require("hotsix-react-app/assets/backgroundimg3.png")} style={styles.container}>
@@ -12,7 +18,7 @@ const RegisterScreen = ({ navigation }) => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => navigation.navigate("InsertPhoto")}
+          onPress={() => navigation.navigate("InsertPhoto", {jwt : jwt})}
         >
           <Text style={styles.loginButtonText}>사진으로 등록하기</Text>
           <Text style={styles.Text}>이미지 파일로 내 시간표를 등록해보세요!</Text>
@@ -20,7 +26,7 @@ const RegisterScreen = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => navigation.navigate("InsertIcs")}
+          onPress={() => navigation.navigate("InsertIcs", {jwt : jwt})}
         >
           <Text style={styles.loginButtonText}>ics파일로 등록하기</Text>
           <Text style={styles.Text}>캘린더 파일로 내 시간표를 등록해보세요!</Text>

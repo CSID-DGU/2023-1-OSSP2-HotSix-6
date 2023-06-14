@@ -18,17 +18,14 @@ import GroupTasksScreen from '../screens/Group/GroupTasksScreen';
 import GroupNoticeScreen from '../screens/Group/GroupNoticeScreen';
 import TimetableScreen from '../screens/TimeTable/TimetableScreen';
 import InsertPhotoScreen from '../screens/TimeTable/InsertPhotoScreen';
-
 import RegisterScreen from '../screens/TimeTable/RegisterScreen';
 import RankingScreen from '../screens/TimeTable/RankingScreen';
 import InsertIcsScreen from '../screens/TimeTable/InsertIcsScreen';
 import MyPageScreen from '../screens/Login_Signup/MyPageScreen';
-
-
+import GroupProgressScreen from '../screens/Group/GroupProgressScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
 
 const TabNavigator = () => {
   
@@ -58,7 +55,7 @@ const TabNavigator = () => {
 const AppNavigator = () => {
  
   return (
-    <Stack.Navigator initialRouteName="Home"  screenOptions={{ 
+    <Stack.Navigator initialRouteName="Home" screenOptions={{ 
       headerStyle: { backgroundColor: '#3679A4' }, 
       headerTintColor: 'white', 
     }}>
@@ -81,6 +78,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Ranking" component={RankingScreen} />
         <Stack.Screen name="MyPage" component={MyPageScreen} />
+        <Stack.Screen name="GroupProgress" component={GroupProgressScreen} />
         
     </Stack.Navigator>
   );

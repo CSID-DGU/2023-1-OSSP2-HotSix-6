@@ -16,7 +16,6 @@ import axios from "axios";
 
 const GroupTimeTableScreen = () => {
 
-
   React.useLayoutEffect(() => {
     navigation.setOptions({
       title: group.Group_Name,
@@ -33,6 +32,8 @@ const GroupTimeTableScreen = () => {
 
   const route = useRoute();
   const { schedules } = route.params;
+  const { jwt } = route.params;
+  const { group } = route.params;
   const [events, setEvents] = useState([]);
   const [selectedEvents, setSelectedEvents] = useState([]);
 

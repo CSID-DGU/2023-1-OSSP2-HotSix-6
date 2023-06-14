@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const SERVER_URL = 'http://192.168.0.12:3001'; // 백엔드 서버 주소로 변경해야함
+const SERVER_URL = 'http://192.168.242.164:8000'; // 백엔드 서버 주소로 변경해야함
 
 const MyPageScreen = ({ navigation }) => {
  

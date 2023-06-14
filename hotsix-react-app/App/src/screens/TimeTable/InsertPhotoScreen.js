@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Button, Image, Alert, StyleSheet, Text, TouchableOpacity,ImageBackground } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
@@ -7,13 +7,18 @@ import axios from "axios";
 import { Menu } from "react-native-paper"; // 변경
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const InsertPhotoScreen = ({ navigation }) => {
-  const SERVER_URL = "http://192.168.200.24:8000"; // 백엔드 서버 주소로 변경해야함
+const InsertPhotoScreen = ({ navigation, route }) => {
+  const SERVER_URL = "http://192.168.242.164:8000"; // 백엔드 서버 주소로 변경해야함
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedHour, setSelectedHour] = useState(null); // 변경
   const [selectedMinute, setSelectedMinute] = useState(null); // 변경
   const [schedules, setschedules] = useState(null);
+  const { jwt } = route.params;
+
+  useEffect(() => {
+    console.log("jpg로 넣기 jwt:", jwt);
+  }, [jwt]);
   
   const selectImage = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -52,9 +57,13 @@ const InsertPhotoScreen = ({ navigation }) => {
           },
         };
 
+        const jwt = jwt;
+        console.log(jwt);
+
         // 첫 이미지 보내기
         const response = await axios.post(
-          `${SERVER_URL}/user/images/`,
+          `${SERVER_URL}/user/img-time-table/`,
+          jwt,
           formData,
           config,
         );
@@ -156,18 +165,6 @@ const InsertPhotoScreen = ({ navigation }) => {
           </View>
         </View>
       )}
-
-
-      {/* {sendImageToServer && (
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.buttonContainer}
-            onPress={() => navigation.navigate("Ranking", { schedules: schedules })}
-          >
-          <Text style={styles.questionText}>삽입 완료</Text>
-        </TouchableOpacity>
-        </View>
-      )} */}
     </ImageBackground>
   );
 };

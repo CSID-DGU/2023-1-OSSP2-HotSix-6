@@ -1,18 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ImageBackground, Alert } from "react-native";
 import axios from "axios";
 import { handleVerification } from "./VerificationScreen";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SERVER_URL = "http://192.168.0.240:8000/";
+const SERVER_URL = "http://192.168.242.164:8000";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [jwt, setJwt] = useState("");
 
   const handleLoginButtonPress = async () => {
-    // 로그인 처리 로직...
+    try {
+      const response = await axios.post(`${SERVER_URL}/user/login/`, {
+        email: email,
+        password: password,
+      });
+      if (response.status === 200) {
+        Alert.alert("로그인 성공!");
+        // console.log("JWT:", response.data.jwt);
+        // const cookies = response.headers["set-cookie"];
+        // await AsyncStorage.setItem("cookies", JSON.stringify(cookies));
+        setJwt(response.data.jwt);
+        navigation.navigate("Main", { jwt: jwt }, { email : email });
+      } else if (response.status === 401) {
+        //이메일 인증 완료 전일 때
+        Alert.alert("로그인 실패. 이메일 인증을 완료해주세요");
+        navigation.navigate("Verification", { email: email });
+        handleVerification(); //이메일 재전송 요청
+      } else {
+        Alert.alert("로그인 실패. 아이디와 패스워드를 확인해주세요.");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+  useEffect(() => {
+    console.log("로그인:", jwt);
+  }, [jwt]);
 
   return (
     <ImageBackground source={require("hotsix-react-app/assets/backgroundimg1.png")} style={styles.container}>

@@ -11,12 +11,12 @@ import {
   ImageBackground,
 } from 'react-native';
 
-const SERVER_URL = 'http://192.168.0.240:8000'; //백엔드 서버 주소로 변경해야함
+const SERVER_URL = 'http://192.168.242.164:8000'; //백엔드 서버 주소로 변경해야함
 
-const JoinGroupScreen = ({route}) => {
+const JoinGroupScreen = ({ route }) => {
  
   const navigation = useNavigation();
-  const { userId } = route.params; 
+  const { jwt } = route.params; 
   const [Group_Code, setGroup_Code] = useState('');
   const [isGroup_CodeAvailable, setIsGroup_CodeAvailable] = useState(true);  
 
@@ -27,11 +27,10 @@ const JoinGroupScreen = ({route}) => {
   }
 
   const handleJoinGroup = async () => {    
-    //if(!isGroup_CodeAvailable) {Alert.alert("형식에 맞지 않는 코드 입니다."); return;};
-    
+    // if(!isGroup_CodeAvailable) {Alert.alert("형식에 맞지 않는 코드 입니다."); return;};
     try {
       const response = await axios.post(`${SERVER_URL}/group/join-group/`, {
-        email : "osh94230315@gmail.com",
+        jwt : jwt,
         group_code : Group_Code,
       });
       //const groupcode = response.data;
@@ -42,7 +41,7 @@ const JoinGroupScreen = ({route}) => {
      // const Response = await JoinGroup(userId, Group_Code);
       if(response.status == 202) {
         Alert.alert("그룹 입장에 성공했습니다!");
-        navigation.navigate("Group", { email: email });
+        navigation.navigate("Group", { jwt : jwt });
       }
     } catch (error) {
       Alert.alert("오류", "코드 전송에 실패했습니다.");

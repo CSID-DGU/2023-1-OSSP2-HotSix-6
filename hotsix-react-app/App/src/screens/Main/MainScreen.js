@@ -1,15 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Image, StyleSheet, View, Text, TouchableOpacity, ImageBackground } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-const MainScreen = ({ navigation }) => {
+const MainScreen = ({ navigation,  route }) => {
+
+  const { jwt } = route.params;
+  const { email } = route.params;
+
+  useEffect(() => {
+    console.log("메인:", jwt);
+  }, [jwt]);
+
+
   return (
     <ImageBackground source={require("hotsix-react-app/assets/backgroundimg1.png")} style={styles.container}>
       <View style={styles.contentContainer}>
         <Text style={styles.title}>메인화면</Text>
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => navigation.navigate("Group")}
+          onPress={() => navigation.navigate("Group", { jwt : jwt }, {email: email})}
         >
           <View style={styles.buttonContent}>
             <View>
@@ -21,7 +30,7 @@ const MainScreen = ({ navigation }) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => navigation.navigate("Register")}
+          onPress={() => navigation.navigate("Register", {jwt : jwt})}
         >
           <View style={styles.buttonContent}>
             <View>

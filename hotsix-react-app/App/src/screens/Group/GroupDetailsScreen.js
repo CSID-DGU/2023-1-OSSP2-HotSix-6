@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet,ImageBackground,Image } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
@@ -39,10 +39,19 @@ const GroupDetailsScreen = ({ route, navigation }) => {
     [4, 0, 0, 0, 1, 0, 12],
   ];
   const { group } = route.params;
+  const { jwt } = route.params;
+
+  useEffect(() => {
+    console.log("그룹 디테일 jwt:", jwt);
+  }, [jwt]);
+
+  useEffect(() => {
+    console.log("그룹 디테일 group:", group);
+  }, [group]);
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      title: ` ${group.Group_Name} `,
+      title: ` ${group.group_name} `,
       headerStyle: {
         backgroundColor: "#3679A4", // 헤더 배경색 변경
       },
@@ -55,7 +64,6 @@ const GroupDetailsScreen = ({ route, navigation }) => {
 
   return (
     <ImageBackground source={require("hotsix-react-app/assets/backgroundimg2.png")} style={styles.container}>
- 
        <Image
             source={require("hotsix-react-app/assets/MainLogo.png")}
             style={styles.logoImage}
@@ -67,7 +75,7 @@ const GroupDetailsScreen = ({ route, navigation }) => {
               name="calendar-month"
               style={styles.icon}
               onPress={() =>
-                navigation.navigate("GroupTimeTable", { schedules: schedules , group})
+                navigation.navigate('GroupTimeTable', {schedules: schedules}, {group}, {jwt : jwt})
               }
             />
             <Text style={styles.text}>그룹 시간표</Text>
@@ -77,7 +85,7 @@ const GroupDetailsScreen = ({ route, navigation }) => {
           <View style={styles.box}>
             <MaterialCommunityIcons
               name="bullhorn-outline"
-              style={styles.icon} onPress={() => navigation.navigate('GroupNotice',{group})}
+              style={styles.icon} onPress={() => navigation.navigate('GroupNotice', {group, jwt})}
             />
             <Text style={styles.text}>공지사항</Text>
           </View>
@@ -90,13 +98,14 @@ const GroupDetailsScreen = ({ route, navigation }) => {
             <MaterialCommunityIcons
               name="file-document-edit-outline"
               style={styles.icon}
+              onPress={() => navigation.navigate('GroupProgress', {group, jwt})}
             />
             <Text style={styles.text}>프로젝트 진행 항목</Text>
           </View>
         </View>
         <View style={styles.boxcontainer}>
           <View style={styles.box}>
-            <MaterialCommunityIcons name="progress-check" style={styles.icon}  onPress={() => navigation.navigate('GroupTasks',{group}) } />
+            <MaterialCommunityIcons name="progress-check" style={styles.icon} onPress={() => navigation.navigate('GroupTasks', {group, jwt})} />
             <Text style={styles.text}>팀원 업무 진행 상황</Text>
           </View>
         </View>

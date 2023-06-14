@@ -10,7 +10,7 @@ import {
   ImageBackground,
 } from "react-native";
 
-const SERVER_URL = "http://192.168.0.240:8000/"; // 백엔드 서버 주소로 변경해야함
+const SERVER_URL = "http://192.168.242.164:8000/"; // 백엔드 서버 주소로 변경해야함
 
 const SignupScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
@@ -55,6 +55,7 @@ const SignupScreen = ({ navigation }) => {
       const response = await axios.post(`${SERVER_URL}/user/duplicate/`, {
         email: email,
       });
+      console.log(response);
       if (response.status === 200) {
         setIsEmailAvailable(response);
         setDuplicateAvailable(response);

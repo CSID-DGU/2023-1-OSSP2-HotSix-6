@@ -1,4 +1,4 @@
-import React, { useState, } from 'react';
+import React, { useState, useEffect} from 'react';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -11,14 +11,18 @@ import {
   ImageBackground,
 } from 'react-native';
 
-const SERVER_URL = 'http://192.168.0.240:8000'; //백엔드 서버 주소로 변경해야함
+const SERVER_URL = 'http://192.168.242.164:8000'; //백엔드 서버 주소로 변경해야함
 
-const CreateNewgroupScreen = ({route}) => {
+const CreateNewgroupScreen = ({ route }) => {
   
   const navigation = useNavigation();
-  const { userId } = route.params;
+  const { jwt } = route.params;
   const [Group_Name, setGroup_Name] = useState('');
   const [isGroup_NameAvailable, setIsGroup_NameAvailable] = useState(false);  
+
+  useEffect(() => {
+    console.log("내그룹 만들기:", jwt);
+  }, [jwt]);
 
   // 그룹 이름 판별(아무거나 2~10자)
   const handlegroupname = (Group_Name) => {
@@ -34,14 +38,13 @@ const CreateNewgroupScreen = ({route}) => {
     try {
       // 그룹 만들기를 위한 백엔드 API 호출
       const response = await axios.post(`${SERVER_URL}/group/generate-group/`, {
-        // Creator_Id: userId,
         group_name: Group_Name,
-        email : "elena0315@naver.com",
+        jwt : jwt, 
       });
       // 랜덤으로 생성된 그룹 코드 
       const groupcode = response.data;
       Alert.alert("그룹 생성이 완료됐습니다! 주어진 그룹 코드 : ", groupcode);
-      navigation.navigate('ManageGroup');   
+      navigation.navigate('Group', {jwt : jwt});   
     } catch (error) {
       console.error(error);
       Alert.alert('그룹 생성 중 오류가 발생했습니다.');

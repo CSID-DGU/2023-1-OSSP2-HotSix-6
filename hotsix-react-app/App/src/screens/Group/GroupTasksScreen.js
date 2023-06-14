@@ -4,14 +4,15 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import axios from 'axios';
 
 const GroupTasksScreen = ({ route, navigation }) => {
-  const SERVER_URL = 'http://192.168.0.12:3001';
+  const SERVER_URL = 'http://192.168.242.164:8000';
   // 그룹별 헤더
   const { group } = route.params;
-  const groupcode = String(group.Group_Code);
+  const { jwt } = route.params;
+  const groupcode = group.group_code;
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      title: group.Group_Name + ' 업무 진행 상황',
+      title: group.group_name + ' 업무 진행 상황',
       headerStyle: {
         backgroundColor: '#3679A4',
       },
@@ -22,55 +23,49 @@ const GroupTasksScreen = ({ route, navigation }) => {
     });
   }, [navigation, group]);
 
+  useEffect(() => {
+    console.log("그룹테스크 jwt:", jwt);
+    console.log("그룹 코드: ", groupcode);
+  }, [jwt, groupcode]);
+
   const [taskText, setTaskText] = useState('');
   const [tasks, setTasks] = useState([]);
   const [groupTasks, setGroupTasks] = useState([]);
   
-
-  //api 요청 : 그룹 업무 목록 가져오기
+  // api 요청 : 그룹 업무 목록 가져오기
   useEffect(() => {
     axios
-      .get(`${SERVER_URL}/group-tasks?groupcode=${groupcode}`)
+      .get(`${SERVER_URL}/group/get-group-task/?jwt=${encodeURIComponent(jwt)}&group_code=${encodeURIComponent(groupcode)}`)
       .then((response) => {
         const fetchedTasks = response.data;
-        setGroupTasks(fetchedTasks);
+        console.log(fetchedTasks);
+        setGroupTasks(fetchedTasks.others);
+        setTasks(fetchedTasks.mine);
       })
       .catch((error) => {
         console.error('그룹 업무 목록 가져오기 중 오류 발생:', error);
       });
   }, []);
-  
-  //api 요청 : 내 업무 목록 가져오기
-  useEffect(() => {
-    axios.get(`${SERVER_URL}/my-tasks?groupcode=${groupcode}`)
-
-      .then((response) => {
-        const fetchedTasks = response.data;
-        setTasks(fetchedTasks);
-      })
-      .catch((error) => {
-        console.error('할 일 목록 가져오기 중 오류 발생:', error);
-      });
-  }, []);
  
-  
 // 새로운 항목 추가
 const addTask = () => {
   if (taskText.trim() !== '') {
     const newTask = {
-      id: Date.now().toString(),
-      text: taskText,
-      status: '진행 안됨',
+      task_id: "",
+      task_name: taskText,
+      task_progress: '0',
+      group_code: "",
+      responsibility: "",
     };
     setTaskText('');
-
     // API 요청: 새로운 항목 추가
     axios
-    .post(`${SERVER_URL}/my-tasks`, { ...newTask, groupcode } )
+    .post(`${SERVER_URL}/group/create-group-task/`, { group_code: groupcode, jwt : jwt, task_name: taskText } )
       .then((response) => {
         console.log('새로운 할 일이 성공적으로 추가되었습니다.');
         const createdTask = response.data;
-        const color = getStatusColor(createdTask.status);
+        newTask.task_id = response.data.task_id;
+        const color = getStatusColor(createdTask.task_progress);
         const updatedTask = { ...createdTask, color };
 
         setTasks((prevTasks) => [...prevTasks, updatedTask]);
@@ -80,7 +75,6 @@ const addTask = () => {
       });
   }
 };
-
 
 // 상태에 따른 색상을 반환
 const getStatusColor = (status) => {
@@ -96,43 +90,46 @@ const getStatusColor = (status) => {
   }
 };
 
-
   // 진행 상태별 정렬 
   const sortTasks = () => {
     let sortedTasks = [...tasks];
     sortedTasks.sort((a, b) => {
       const statusOrder = ['진행 안됨', '진행 중', '진행 완료'];
-      return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+      return statusOrder.indexOf(a.task_progress) - statusOrder.indexOf(b.task_progress);
     });
     setTasks(sortedTasks);
   };
   
-
   // 진행 상태 표시 버튼
   const toggleTaskStatus = (id) => {
+    console.log(id);
+    console.log(tasks);
     const updatedTasks = tasks.map((task) => {
-      if (task.id === id) {
+      const checkid = tasks.task_id;
+      console.log("실험: task 프로그래스" + task.task_progress);
+      console.log("실험: task 아이디" + task.task_id);
+      if (checkid === id) {
         let updatedStatus;
         let updatedColor;
-        if (task.status === '진행 안됨') {
-          updatedStatus = '진행 중';
+        if (task.task_progress === 0) {
+          updatedStatus = 1;
           updatedColor = '#FF4646';
-        } else if (task.status === '진행 중') {
-          updatedStatus = '진행 완료';
+        } else if (task.task_progress === 1) {
+          updatedStatus = 2;
           updatedColor = '#3679A4';
         } else {
-          updatedStatus = '진행 안됨';
+          updatedStatus = 0;
           updatedColor = '#888888';
         }
         // API 요청: 할 일 수정
         axios
-        .patch(`${SERVER_URL}/my-tasks/${id}`, { status: updatedStatus })
+        .put(`${SERVER_URL}/group/update-group-task/`, { task_id : id, task_progress: updatedStatus, jwt})
         .then((response) => {
           console.log('할 일이 성공적으로 수정되었습니다.');
-          const updatedTask = { ...task, status: updatedStatus };
+          const updatedTask = { ...task, task_progress: updatedStatus };
           const updatedColor = getStatusColor(updatedStatus);
           updatedTask.color = updatedColor;
-          const updatedTasks = tasks.map((item) => (item.id === id ? updatedTask : item));
+          const updatedTasks = tasks.map((item) => (item.task_id === id ? updatedTask : item));
           setTasks(updatedTasks);
         })
         .catch((error) => {
@@ -140,7 +137,7 @@ const getStatusColor = (status) => {
         });
         return {
           ...task,
-          status: updatedStatus,
+          task_progress: updatedStatus,
           color: updatedColor,
         };
       }
@@ -152,11 +149,12 @@ const getStatusColor = (status) => {
   // 리스트 삭제
   const deleteTask = (id) => {
     // API 요청: 할 일 삭제
+    const task_id = id.task_id;
     axios
-      .delete(`${SERVER_URL}/my-tasks/${id}`)
+      .post(`${SERVER_URL}/group/delete-group-task/`, {jwt, task_id : task_id})
       .then((response) => {
         console.log('할 일이 성공적으로 삭제되었습니다.');
-        const updatedTasks = tasks.filter((task) => task.id !== id);
+        const updatedTasks = tasks.filter((task) => task.task_id !== id);
         setTasks(updatedTasks);
       })
       .catch((error) => {
@@ -166,21 +164,21 @@ const getStatusColor = (status) => {
 
   // 내 업무 추가 목록
   const renderItem = ({ item }) => {
-    const taskColor = getStatusColor(item.status);
+    const taskColor = getStatusColor(item.task_progress);
   
     return (
       <View style={styles.taskItem}>
         <View style={[styles.statusIndicator, { backgroundColor: taskColor }]} />
-        <Text style={[styles.taskText, { color: 'black' }]}>{item.text}</Text>
+        <Text style={[styles.taskText, { color: 'black' }]}>{item.task_name}</Text>
         <TouchableOpacity
-          onPress={() => toggleTaskStatus(item.id)}
+          onPress={() => toggleTaskStatus(item.task_id)}
           style={[styles.statusButton, { backgroundColor: taskColor }]}
         >
           <View>
-            <Text style={[styles.statusButtonText, { color: '#fff' }]}>{item.status}</Text>
+            <Text style={[styles.statusButtonText, { color: '#fff' }]}>{item.task_progress}</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => deleteTask(item.id)} style={styles.deleteButton}>
+        <TouchableOpacity onPress={() => deleteTask(item)} style={styles.deleteButton}>
           <MaterialCommunityIcons name="delete" size={25} color="black" />
         </TouchableOpacity>
       </View>
@@ -189,13 +187,13 @@ const getStatusColor = (status) => {
   
   //그룹원 업무 
   const renderGroupTaskItem = ({ item }) => {
-    const taskColor = getStatusColor(item.status);
+    const taskColor = getStatusColor(item.task_progress);
     return (
       <View style={styles.groupTaskItem}>
           
         <View style={styles.groupTaskTitleContainer}>
         <View style={[styles.statusIndicator, { backgroundColor: taskColor}]} />
-        <Text style={[styles.taskText, { color: 'black' }]}>{item.text}</Text>
+        <Text style={[styles.taskText, { color: 'black' }]}>{item.task_name}</Text>
           <Text style={styles.authorText}>담당: {item.author}</Text>
         </View>
         
@@ -227,7 +225,7 @@ const getStatusColor = (status) => {
           style={styles.list}
           data={tasks}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.task_id}
         />
       </View>
       <View style={styles.titleContainer}>
@@ -238,7 +236,7 @@ const getStatusColor = (status) => {
           style={styles.list}
           data={groupTasks}
           renderItem={renderGroupTaskItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.task_id}
         />
       </View>
     </View>
