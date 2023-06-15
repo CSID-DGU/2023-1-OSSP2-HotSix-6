@@ -18,7 +18,7 @@ const GroupTimeTableScreen = () => {
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      title: group.Group_Name,
+      title: group.group_name,
       headerStyle: {
         backgroundColor: '#3679A4',
       },

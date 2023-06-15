@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import { Alert, StyleSheet, View, TouchableOpacity, Text,ImageBackground } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const SERVER_URL = 'http://192.168.242.164:3001'; //백엔드 서버 주소로 변경해야함 + 토큰 추가
+const SERVER_URL = 'http://192.168.242.164:8000'; //백엔드 서버 주소로 변경해야함 + 토큰 추가
 
-const InsertIcsScreen = () => {
+const InsertIcsScreen = ( {route} ) => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const { jwt } = route.params;
+
+  useEffect(() => {
+    console.log("ics 파일 jwt:", jwt);
+  }, [jwt]);
 
   //파일 선택
   const handleFileSelection = async () => {
@@ -41,19 +46,19 @@ const InsertIcsScreen = () => {
           type: 'text/calendar',
         });
 
-        const response = await axios.post(
-          `${SERVER_URL}/user/img-time-table`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
+        const response = await axios.put(
+          `${SERVER_URL}/user/ics-time-table/`,{
+            file: formData,
+            // {
+            //   headers: {
+            //     'Content-Type': 'multipart/form-data',
+            //   },
+            // }
+            jwt : jwt,
           }
         );
 
         console.log(response.data);
-
-        
         Alert.alert('파일 전송 성공', '파일이 서버로 전송되었습니다.');
       } catch (error) {
         console.log(error);

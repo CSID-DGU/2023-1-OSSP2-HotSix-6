@@ -33,12 +33,14 @@ const JoinGroupScreen = ({ route }) => {
         jwt : jwt,
         group_code : Group_Code,
       });
+
       //const groupcode = response.data;
-     // if(!groupcode) {
-     //   Alert.alert("존재하지 않는 코드입니다. 다시 입력해주세요."); return;
+      // if(!groupcode) {
+      //   Alert.alert("존재하지 않는 코드입니다. 다시 입력해주세요."); return;
       //}
       // db에 해당 코드가 존재하는 경우 사용자를 해당 그룹에 가입
-     // const Response = await JoinGroup(userId, Group_Code);
+      // const Response = await JoinGroup(userId, Group_Code);
+
       if(response.status == 202) {
         Alert.alert("그룹 입장에 성공했습니다!");
         navigation.navigate("Group", { jwt : jwt });

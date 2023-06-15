@@ -105,7 +105,7 @@ const getStatusColor = (status) => {
     console.log(id);
     console.log(tasks);
     const updatedTasks = tasks.map((task) => {
-      const checkid = tasks.task_id;
+      const checkid = task.task_id;
       console.log("실험: task 프로그래스" + task.task_progress);
       console.log("실험: task 아이디" + task.task_id);
       if (checkid === id) {

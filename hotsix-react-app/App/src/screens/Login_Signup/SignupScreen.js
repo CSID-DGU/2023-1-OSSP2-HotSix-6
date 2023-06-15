@@ -10,7 +10,7 @@ import {
   ImageBackground,
 } from "react-native";
 
-const SERVER_URL = "http://192.168.242.164:8000/"; // 백엔드 서버 주소로 변경해야함
+const SERVER_URL = "http://192.168.242.164:8000"; // 백엔드 서버 주소로 변경해야함
 
 const SignupScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
@@ -92,8 +92,6 @@ const SignupScreen = ({ navigation }) => {
         email: email,
         password: password,
         name: name,
-        join_date: "2023-05-23",
-        is_active: 0,
       });
       if (response.status === 201) {
         Alert.alert("회원가입이 완료되었습니다.");

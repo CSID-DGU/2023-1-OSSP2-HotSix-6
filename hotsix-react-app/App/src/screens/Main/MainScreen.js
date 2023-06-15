@@ -30,7 +30,7 @@ const MainScreen = ({ navigation,  route }) => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => navigation.navigate("Register", {jwt : jwt})}
+          onPress={() => navigation.navigate("Register", { jwt : jwt })}
         >
           <View style={styles.buttonContent}>
             <View>

@@ -73,7 +73,7 @@ const RankingScreen = () => {
     console.log(schedule);
 
     axios
-      .post("http://192.168.242.164:8000/test/", schedule)
+      .post("http://172.30.1.52:8000/test/", schedule)
       .then((response) => {
         console.log(response);
         Alert.alert("백엔드로 데이터가 성공적으로 전송되었습니다.");

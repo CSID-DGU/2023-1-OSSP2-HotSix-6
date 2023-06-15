@@ -13,7 +13,7 @@ const InsertPhotoScreen = ({ navigation, route }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedHour, setSelectedHour] = useState(null); // 변경
   const [selectedMinute, setSelectedMinute] = useState(null); // 변경
-  const [schedules, setschedules] = useState(null);
+  const [schedules, setSchedules] = useState(null);
   const { jwt } = route.params;
 
   useEffect(() => {
@@ -48,7 +48,6 @@ const InsertPhotoScreen = ({ navigation, route }) => {
           name: "image.jpg",
           type: "image/jpeg",
         });
-
         formData.append("time", `${selectedHour}:${selectedMinute}`); // 변경
 
         const config = {
@@ -57,27 +56,23 @@ const InsertPhotoScreen = ({ navigation, route }) => {
           },
         };
 
-        const jwt = jwt;
-        console.log(jwt);
-
         // 첫 이미지 보내기
         const response = await axios.post(
-          `${SERVER_URL}/user/img-time-table/`,
-          jwt,
-          formData,
-          config,
+          `${SERVER_URL}/user/images/`, 
+            formData,
+            config,
         );
 
-        // DB에 이미지 올리기 요청
-        const Response = await axios.post(
-          `${SERVER_URL}/user/img-time-table/`, 
-          {'email' : 'test1@test.com'}
-        )
+        const putResponse = await axios.put(
+          `${SERVER_URL}/user/img-time-table/`,jwt);
 
+        // DB에 이미지 올리기 요청
+        const Response = await axios.get(`${SERVER_URL}/user/view-time-table/?jwt=${encodeURIComponent(jwt)}`);
         // /user/view-time-table/ 이거로 이메일이랑 같이 보내기 -> 배열 데이터 받기
 
-        const imageData = response.data.image;
-        setschedules(imageData);
+        const imageData = Response.data.time_table;
+        console.log(imageData);
+        setSchedules(imageData);
 
         // 전송이 완료됐다면 다시 Timetable로 이동.
         if(Response.status === 200){
@@ -85,7 +80,8 @@ const InsertPhotoScreen = ({ navigation, route }) => {
             "이미지와 시간 전송 성공",
             "이미지와 시간이 서버로 전송되었습니다."
           );
-          navigation.navigate("Timetable");
+          console.log("죽여줘")
+          navigation.navigate("Ranking", {schedules, jwt})
         }
       } catch (error) {
         Alert.alert(
