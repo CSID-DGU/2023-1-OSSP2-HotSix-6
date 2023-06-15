@@ -1,5 +1,5 @@
-import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -8,16 +8,16 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { SAMPLE_NOTICE_DATA_LIST } from '../../constant/notice';
-import { A_SERVER_URL } from '../../constant/url';
+} from "react-native";
+import { SAMPLE_NOTICE_DATA_LIST } from "../../constant/notice";
+import { A_SERVER_URL } from "../../constant/url";
 
 let idCount = 5;
 
 const GroupNoticeScreen = ({ route, navigation }) => {
   const [notices, setNotices] = useState(SAMPLE_NOTICE_DATA_LIST);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [selectedNotice, setSelectedNotice] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -29,13 +29,13 @@ const GroupNoticeScreen = ({ route, navigation }) => {
   //헤더부분
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      title: group.Group_Name + ' 공지사항',
+      title: group.Group_Name + " 공지사항",
       headerStyle: {
-        backgroundColor: '#3679A4',
+        backgroundColor: "#3679A4",
       },
-      headerTintColor: '#ffffff',
+      headerTintColor: "#ffffff",
       headerTitleStyle: {
-        fontWeight: 'bold',
+        fontWeight: "bold",
       },
     });
   }, [navigation, group]);
@@ -58,8 +58,8 @@ const GroupNoticeScreen = ({ route, navigation }) => {
   //API요청 : 그룹별 공지사항 추가
   const createNotice = () => {
     setNotices((prev) => [...prev, { id: idCount, title, content }]);
-    setTitle('');
-    setContent('');
+    setTitle("");
+    setContent("");
     setCreateModalVisible(false);
     idCount++;
 
@@ -84,7 +84,7 @@ const GroupNoticeScreen = ({ route, navigation }) => {
       .then((response) => {
         loadNotices();
         setModalVisible(false);
-        console.log('공지사항이 성공적으로 삭제되었습니다.');
+        console.log("공지사항이 성공적으로 삭제되었습니다.");
       })
       .catch((error) => {
         console.error(error);
@@ -123,7 +123,7 @@ const GroupNoticeScreen = ({ route, navigation }) => {
 
       {/* 삭제 및 세부 보기 모달 창*/}
       <Modal
-        animationType='slide'
+        animationType="slide"
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
@@ -174,7 +174,7 @@ const GroupNoticeScreen = ({ route, navigation }) => {
 
       {/* 생성 모달 창*/}
       <Modal
-        animationType='slide'
+        animationType="slide"
         visible={createModalVisible}
         onRequestClose={() => setCreateModalVisible(false)}
       >
@@ -215,14 +215,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   inputContainer: {
     marginBottom: 16,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 4,
     padding: 8,
     marginBottom: 8,
@@ -230,56 +230,57 @@ const styles = StyleSheet.create({
   noticeTitle: {
     fontSize: 18,
     marginBottom: 8,
+    fontWeight: "bold",
   },
   noticeContent: {
     fontSize: 15,
-    color: '#888',
+    color: "#888",
     marginBottom: 8,
   },
   noticeItem: {
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderBottomColor: "#ccc",
     marginBottom: 8,
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16,
-    width: '80%',
+    width: "80%",
     borderRadius: 4,
   },
   modalText: {
-    fontSize: 16,
+    fontSize: 20,
     marginTop: 20,
     marginBottom: 10,
   },
   modalTitle: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 4,
     padding: 10,
     marginBottom: 8,
-    color: 'black',
+    color: "black",
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 4,
     padding: 10,
     marginBottom: 8,
-    color: 'black',
+    color: "black",
     height: 150,
   },
 
   modalButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginBottom: 16,
   },
   button: {
@@ -287,18 +288,18 @@ const styles = StyleSheet.create({
     margin: 8,
     height: 40,
     borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#3679A4',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#3679A4",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 
   addButtonContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 16,
     right: 16,
   },
@@ -306,14 +307,14 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#3679A4',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#3679A4",
+    justifyContent: "center",
+    alignItems: "center",
   },
   addButtonLabel: {
     fontSize: 36,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
 });
 

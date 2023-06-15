@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet,ImageBackground,Image } from "react-native";
+import { View, Text, StyleSheet, ImageBackground, Image } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 const GroupDetailsScreen = ({ route, navigation }) => {
@@ -29,14 +29,14 @@ const GroupDetailsScreen = ({ route, navigation }) => {
     [4, 0, 0, 0, 0, 0, 1],
     [4, 0, 0, 0, 0, 0, 1],
     [4, 0, 0, 0, 0, 0, 1],
-    [4, 0, 0, 0, 0, 0, 12],
-    [4, 0, 0, 0, 0, 0, 12],
-    [4, 0, 0, 0, 0, 0, 12],
-    [4, 0, 0, 0, 1, 0, 12],
-    [4, 0, 0, 0, 1, 0, 12],
-    [4, 0, 0, 0, 1, 0, 12],
-    [4, 0, 0, 0, 1, 0, 12],
-    [4, 0, 0, 0, 1, 0, 12],
+    [4, 0, 0, 0, 0, 0, 8],
+    [4, 0, 0, 0, 0, 0, 8],
+    [4, 0, 0, 0, 0, 0, 8],
+    [4, 0, 0, 0, 1, 0, 8],
+    [4, 0, 0, 0, 1, 0, 8],
+    [4, 0, 0, 0, 1, 0, 8],
+    [4, 0, 0, 0, 1, 0, 8],
+    [4, 0, 0, 0, 1, 0, 8],
   ];
   const { group } = route.params;
 
@@ -54,12 +54,14 @@ const GroupDetailsScreen = ({ route, navigation }) => {
   }, [navigation, group]);
 
   return (
-    <ImageBackground source={require("hotsix-react-app/assets/backgroundimg2.png")} style={styles.container}>
- 
-       <Image
-            source={require("hotsix-react-app/assets/MainLogo.png")}
-            style={styles.logoImage}
-          />
+    <ImageBackground
+      source={require("hotsix-react-app/assets/backgroundimg2.png")}
+      style={styles.container}
+    >
+      <Image
+        source={require("hotsix-react-app/assets/MainLogo.png")}
+        style={styles.logoImage}
+      />
       <View style={styles.row}>
         <View style={styles.boxcontainer}>
           <View style={styles.box}>
@@ -67,7 +69,10 @@ const GroupDetailsScreen = ({ route, navigation }) => {
               name="calendar-month"
               style={styles.icon}
               onPress={() =>
-                navigation.navigate("GroupTimeTable", { schedules: schedules , group} )
+                navigation.navigate("GroupTimeTable", {
+                  schedules: schedules,
+                  group,
+                })
               }
             />
             <Text style={styles.text}>그룹 시간표</Text>
@@ -77,7 +82,8 @@ const GroupDetailsScreen = ({ route, navigation }) => {
           <View style={styles.box}>
             <MaterialCommunityIcons
               name="bullhorn-outline"
-              style={styles.icon} onPress={() => navigation.navigate('GroupNotice',{group})}
+              style={styles.icon}
+              onPress={() => navigation.navigate("GroupNotice", { group })}
             />
             <Text style={styles.text}>공지사항</Text>
           </View>
@@ -93,7 +99,7 @@ const GroupDetailsScreen = ({ route, navigation }) => {
               onPress={
                 () =>
                   navigation.navigate("GroupProgress", {
-                    group
+                    group,
                   }) //수정
               }
             />
@@ -102,7 +108,11 @@ const GroupDetailsScreen = ({ route, navigation }) => {
         </View>
         <View style={styles.boxcontainer}>
           <View style={styles.box}>
-            <MaterialCommunityIcons name="progress-check" style={styles.icon}  onPress={() => navigation.navigate('GroupTasks',{group}) } />
+            <MaterialCommunityIcons
+              name="progress-check"
+              style={styles.icon}
+              onPress={() => navigation.navigate("GroupTasks", { group })}
+            />
             <Text style={styles.text}>팀원 업무 진행 상황</Text>
           </View>
         </View>
@@ -118,7 +128,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#ffffff",
   },
-
 
   logoImage: {
     width: "90%",
@@ -156,7 +165,6 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     marginBottom: 10,
   },
-
 
   text: {
     color: "#ffffff",

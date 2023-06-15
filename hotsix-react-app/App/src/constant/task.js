@@ -1,40 +1,39 @@
 export const SAMPLE_TASK_DATA_LIST = [
   {
     id: 0,
-    text: '텍스트1',
-    status: '진행 안됨',
+    text: "대본 작성",
+    status: "진행 완료",
   },
   {
     id: 1,
-    text: '텍스트2',
-    status: '진행 중',
-  },
-  {
-    id: 2,
-    text: '텍스트3',
-    status: '진행 중',
-  },
-  {
-    id: 3,
-    text: '텍스트4',
-    status: '진행 완료',
+    text: "영상 촬영",
+    status: "진행 완료",
   },
 ];
 
 export const SAMPLE_GROUP_TASK_DATA_LIST = [
   {
     id: 0,
-    text: '그룹 텍스트1',
-    author: '황현정',
+    text: "영상편집",
+    author: "남상원",
+    status: "진행 완료",
   },
   {
     id: 1,
-    text: '그룹 텍스트2',
-    author: '황현정!',
+    text: "보고서 취합",
+    author: "여은동",
+    status: "진행 완료",
   },
   {
     id: 2,
-    text: '그룹 텍스트3',
-    author: '황현정!!',
+    text: "백앤드 연동 확인",
+    author: "오수현",
+    status: "진행 완료",
+  },
+  {
+    id: 3,
+    text: "ppt 제작",
+    author: "송하연",
+    status: "진행 완료",
   },
 ];
