@@ -1,15 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, StyleSheet } from 'react-native';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  StyleSheet,
+} from "react-native";
+import axios from "axios";
 
 const GroupNoticeScreen = ({ route, navigation }) => {
   const [notices, setNotices] = useState([]);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [selectedNotice, setSelectedNotice] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const SERVER_URL = 'http://192.168.242.164:8000';
+  const SERVER_URL = "http://192.168.242.24:8000";
 
   const { group } = route.params;
   const { jwt } = route.params;
@@ -18,15 +26,14 @@ const GroupNoticeScreen = ({ route, navigation }) => {
   // 헤더부분
   React.useLayoutEffect(() => {
     navigation.setOptions({
-      title: group.group_name + ' 공지사항',
+      title: group.group_name + " 공지사항",
       headerStyle: {
-        backgroundColor: '#3679A4',
+        backgroundColor: "#3679A4",
       },
-      headerTintColor: '#ffffff',
+      headerTintColor: "#ffffff",
       headerTitleStyle: {
-        fontWeight: 'bold',
+        fontWeight: "bold",
       },
-  
     });
   }, [navigation, group]);
 
@@ -40,39 +47,54 @@ const GroupNoticeScreen = ({ route, navigation }) => {
 
   // API요청 : 그룹별 공지사항 로드
   const loadNotices = () => {
-    axios.get(`${SERVER_URL}/group/get-group-notice/?group_code=${encodeURIComponent(groupcode)}&jwt=${encodeURIComponent(jwt)}`)
-      .then(response => {
+    axios
+      .get(
+        `${SERVER_URL}/group/get-group-notice/?group_code=${encodeURIComponent(
+          groupcode
+        )}&jwt=${encodeURIComponent(jwt)}`
+      )
+      .then((response) => {
         setNotices(response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       });
   };
 
- // API요청 : 그룹별 공지사항 추가
+  // API요청 : 그룹별 공지사항 추가
   const createNotice = () => {
-    axios.post(`${SERVER_URL}/group/create-group-notice/`, {notice_title : title, notice_content : content, group_code: groupcode, jwt : jwt})
-      .then(response => {
-        setTitle('');
-        setContent('');
+    axios
+      .post(`${SERVER_URL}/group/create-group-notice/`, {
+        notice_title: title,
+        notice_content: content,
+        group_code: groupcode,
+        jwt: jwt,
+      })
+      .then((response) => {
+        setTitle("");
+        setContent("");
         loadNotices();
         setCreateModalVisible(false);
-        console.log('공지사항이 성공적으로 추가되었습니다.');
+        console.log("공지사항이 성공적으로 추가되었습니다.");
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
       });
   };
 
   // API요청 : 그룹별 공지사항 삭제
   const deleteNotice = (Notice_ID, jwt) => {
-    axios.post(`${SERVER_URL}/group/delete-notice/`, {notice_id : Notice_ID, jwt : jwt})
-      .then(response => {
+    axios
+      .post(`${SERVER_URL}/group/delete-notice/`, {
+        notice_id: Notice_ID,
+        jwt: jwt,
+      })
+      .then((response) => {
         loadNotices();
         setModalVisible(false);
-        console.log('공지사항이 성공적으로 삭제되었습니다.');
+        console.log("공지사항이 성공적으로 삭제되었습니다.");
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error);
         console.log(Notice_ID);
       });
@@ -81,32 +103,37 @@ const GroupNoticeScreen = ({ route, navigation }) => {
   // 아이템 추가
   const renderNoticeItem = ({ item }) => (
     <TouchableOpacity
-    onPress={() => {
-      setSelectedNotice(item);
-      setModalVisible(true);
-      console.log(item);
-    }}
-    style={styles.noticeItem}
-  >
-    <Text style={styles.noticeTitle}>{item.notice_title}</Text>
-    <Text style={styles.noticeContent}>{item.notice_content}</Text>
-    <Text style={styles.noticeContent}>{item.notice_id}</Text>
-  </TouchableOpacity>
-);
+      onPress={() => {
+        setSelectedNotice(item);
+        setModalVisible(true);
+        console.log(item);
+      }}
+      style={styles.noticeItem}
+    >
+      <Text style={styles.noticeTitle}>{item.notice_title}</Text>
+      <Text style={styles.noticeContent}>{item.notice_content}</Text>
+      <Text style={styles.noticeContent}>{item.notice_id}</Text>
+    </TouchableOpacity>
+  );
   return (
-    <View style={styles.container}>     
+    <View style={styles.container}>
       <FlatList
         data={notices}
         renderItem={renderNoticeItem}
-        keyExtractor={item => item?.id?.toString() || Math.random().toString()}
+        keyExtractor={(item) =>
+          item?.id?.toString() || Math.random().toString()
+        }
       />
-       <TouchableOpacity style={styles.addButtonContainer} onPress={() => setCreateModalVisible(true)}>
+      <TouchableOpacity
+        style={styles.addButtonContainer}
+        onPress={() => setCreateModalVisible(true)}
+      >
         <View style={styles.addButton}>
           <Text style={styles.addButtonLabel}>+</Text>
         </View>
       </TouchableOpacity>
-   
-    {/* 삭제 및 세부 보기 모달 창*/}
+
+      {/* 삭제 및 세부 보기 모달 창*/}
       <Modal
         animationType="slide"
         visible={modalVisible}
@@ -119,8 +146,8 @@ const GroupNoticeScreen = ({ route, navigation }) => {
               style={styles.modalTitle}
               value={selectedNotice?.title}
               editable={false}
-              onChangeText={text => {
-                setSelectedNotice(prevState => ({
+              onChangeText={(text) => {
+                setSelectedNotice((prevState) => ({
                   ...prevState,
                   title: text,
                 }));
@@ -132,25 +159,31 @@ const GroupNoticeScreen = ({ route, navigation }) => {
               value={selectedNotice?.content}
               editable={false}
               multiline={true}
-              onChangeText={text => {
-                setSelectedNotice(prevState => ({
+              onChangeText={(text) => {
+                setSelectedNotice((prevState) => ({
                   ...prevState,
                   content: text,
                 }));
               }}
             />
             <View style={styles.modalButtonContainer}>
-            <TouchableOpacity style={styles.button} onPress={() => deleteNotice(selectedNotice.notice_id, jwt)}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => deleteNotice(selectedNotice.notice_id, jwt)}
+              >
                 <Text style={styles.buttonText}>삭제</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => setModalVisible(false)}
+              >
                 <Text style={styles.buttonText}>닫기</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-              
+
       {/* 생성 모달 창*/}
       <Modal
         animationType="slide"
@@ -163,22 +196,25 @@ const GroupNoticeScreen = ({ route, navigation }) => {
             <TextInput
               style={styles.modalTitle}
               value={title}
-              onChangeText={text => setTitle(text)}
+              onChangeText={(text) => setTitle(text)}
             />
             <Text style={styles.modalText}>내용</Text>
             <TextInput
               style={styles.modalInput}
               value={content}
               multiline={true}
-              onChangeText={text => setContent(text)}
+              onChangeText={(text) => setContent(text)}
             />
             <View style={styles.modalButtonContainer}>
-            <TouchableOpacity style={styles.button} onPress={createNotice} >
+              <TouchableOpacity style={styles.button} onPress={createNotice}>
                 <Text style={styles.buttonText}>확인</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={() => setCreateModalVisible(false)}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => setCreateModalVisible(false)}
+              >
                 <Text style={styles.buttonText}>닫기</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -191,14 +227,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   inputContainer: {
     marginBottom: 16,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 4,
     padding: 8,
     marginBottom: 8,
@@ -209,25 +245,25 @@ const styles = StyleSheet.create({
   },
   noticeContent: {
     fontSize: 15,
-    color: '#888',
+    color: "#888",
     marginBottom: 8,
   },
   noticeItem: {
-    borderBottomWidth: 1, 
-    borderBottomColor: '#ccc', 
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
     marginBottom: 8,
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16,
-    width: '80%',
+    width: "80%",
     borderRadius: 4,
   },
   modalText: {
@@ -237,25 +273,25 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 4,
     padding: 10,
     marginBottom: 8,
-    color : 'black',
+    color: "black",
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 4,
     padding: 10,
     marginBottom: 8,
-    color : 'black',
+    color: "black",
     height: 150,
   },
- 
+
   modalButtonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginBottom: 16,
   },
   button: {
@@ -263,18 +299,18 @@ const styles = StyleSheet.create({
     margin: 8,
     height: 40,
     borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#3679A4',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#3679A4",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 
   addButtonContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 16,
     right: 16,
   },
@@ -282,16 +318,15 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#3679A4',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#3679A4",
+    justifyContent: "center",
+    alignItems: "center",
   },
   addButtonLabel: {
     fontSize: 36,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
   },
-
 });
 
 export default GroupNoticeScreen;

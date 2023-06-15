@@ -12,7 +12,7 @@ import axios from "axios";
 import { handleVerification } from "./VerificationScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const SERVER_URL = "http://192.168.242.164:8000";
+const SERVER_URL = "http://192.168.242.24:8000";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -31,13 +31,16 @@ const LoginScreen = ({ navigation }) => {
         // const cookies = response.headers["set-cookie"];
         // await AsyncStorage.setItem("cookies", JSON.stringify(cookies));
         setJwt(response.data.jwt);
-        //setTimeout(() => {}, 10000);
-        navigation.navigate("Main", { jwt: jwt }, { email: email });
+        navigation.navigate(
+          "Main",
+          { jwt: response.data.jwt },
+          { email: email }
+        );
       } else if (response.status === 401) {
-        //이메일 인증 완료 전일 때
+        // 이메일 인증 완료 전일 때
         Alert.alert("로그인 실패. 이메일 인증을 완료해주세요");
         navigation.navigate("Verification", { email: email });
-        handleVerification(); //이메일 재전송 요청
+        handleVerification(); // 이메일 재전송 요청
       } else {
         Alert.alert("로그인 실패. 아이디와 패스워드를 확인해주세요.");
       }

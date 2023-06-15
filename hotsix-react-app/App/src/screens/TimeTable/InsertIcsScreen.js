@@ -11,9 +11,10 @@ import * as DocumentPicker from "expo-document-picker";
 import axios from "axios";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-const SERVER_URL = "http://192.168.242.164:8000"; //백엔드 서버 주소로 변경해야함 + 토큰 추가
+const SERVER_URL = "http://192.168.242.24:8000"; //백엔드 서버 주소로 변경해야함 + 토큰 추가
 
-const InsertIcsScreen = ({ route }) => {
+const InsertIcsScreen = ({ navigation, route }) => {
+  const [schedules, setSchedules] = useState([[]]);
   const [selectedFile, setSelectedFile] = useState(null);
   const { jwt } = route.params;
 
@@ -41,7 +42,6 @@ const InsertIcsScreen = ({ route }) => {
   };
 
   //파일 업로드
-  //파일 업로드
   const handleUpload = async () => {
     const help = jwt.toString();
     if (selectedFile) {
@@ -64,15 +64,35 @@ const InsertIcsScreen = ({ route }) => {
           },
         };
 
-        const response = await axios.put(
-          `${SERVER_URL}/user/ics-time-table/`,
+        const Response_post = await axios.post(
+          `${SERVER_URL}/user/save-ics-file/`,
           formData,
-          config,
-          help
+          config
         );
 
-        console.log(response.data);
-        Alert.alert("파일 전송 성공", "파일이 서버로 전송되었습니다.");
+        const Response_put = await axios.put(
+          `${SERVER_URL}/user/ics-time-table/`,
+          { jwt: jwt }
+        );
+
+        const Response_get = await axios.get(
+          `${SERVER_URL}/user/view-time-table/?jwt=${encodeURIComponent(jwt)}`
+        );
+
+        const imageData = Response_get.data.time_table;
+        //console.log(imageData);
+        setTimeout(() => {
+          console.log("이미지 데이터", imageData);
+        }, 3000);
+        setSchedules(imageData);
+        setTimeout(() => {
+          console.log("이미지 데이터", imageData);
+        }, 3000);
+
+        if (Response_get.status === 200) {
+          Alert.alert("ics 파일이 전송됐습니다.");
+          navigation.navigate("Ranking", { schedules, jwt });
+        }
       } catch (error) {
         console.log(error);
         Alert.alert(

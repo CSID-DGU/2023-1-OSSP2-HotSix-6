@@ -10,7 +10,7 @@ import {
   ImageBackground,
 } from "react-native";
 
-const SERVER_URL = "http://192.168.242.164:8000"; // 백엔드 서버 주소로 변경해야함
+const SERVER_URL = "http://192.168.242.24:8000"; // 백엔드 서버 주소로 변경해야함
 
 const SignupScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
@@ -87,7 +87,7 @@ const SignupScreen = ({ navigation }) => {
     }
 
     try {
-      const currentDate = new Date().toISOString().substring(0,10);
+      const currentDate = new Date().toISOString().substring(0, 10);
       const response = await axios.post(`${SERVER_URL}/user/register/`, {
         email: email,
         password: password,
@@ -107,80 +107,87 @@ const SignupScreen = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground source={require("hotsix-react-app/assets/backgroundimg2.png")} style={styles.container}>
-       <View style={styles.contentContainer}>
-      <Text style={styles.title}>회원가입</Text>
+    <ImageBackground
+      source={require("hotsix-react-app/assets/backgroundimg2.png")}
+      style={styles.container}
+    >
+      <View style={styles.contentContainer}>
+        <Text style={styles.title}>회원가입</Text>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>이메일</Text>
-        <View style={styles.usernameContainer}>
-          <TextInput
-            style={[styles.input, { height: 40 }]}
-            value={email}
-            onChangeText={handleEmailValid}
-            placeholder="이메일을 입력하세요"
-          />
-          <TouchableOpacity
-            style={[styles.checkButton, { paddingHorizontal: 8, height: 40 }]}
-            onPress={handleCheckDuplicate}
-          >
-            <Text style={styles.checkButtonText}>중복 확인</Text>
-          </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>이메일</Text>
+          <View style={styles.usernameContainer}>
+            <TextInput
+              style={[styles.input, { height: 40 }]}
+              value={email}
+              onChangeText={handleEmailValid}
+              placeholder="이메일을 입력하세요"
+            />
+            <TouchableOpacity
+              style={[styles.checkButton, { paddingHorizontal: 8, height: 40 }]}
+              onPress={handleCheckDuplicate}
+            >
+              <Text style={styles.checkButtonText}>중복 확인</Text>
+            </TouchableOpacity>
+          </View>
+          {!email && (
+            <Text style={{ color: "red" }}>이메일을 입력해주세요.</Text>
+          )}
+          {email && !isEmailAvailable && (
+            <Text style={{ color: "red" }}>사용 불가능한 이메일입니다.</Text>
+          )}
+          {email && isEmailAvailable && (
+            <Text style={{ color: "green" }}>사용 가능한 이메일입니다.</Text>
+          )}
         </View>
-        {!email && <Text style={{ color: "red" }}>이메일을 입력해주세요.</Text>}
-        {email && !isEmailAvailable && (
-          <Text style={{ color: "red" }}>사용 불가능한 이메일입니다.</Text>
-        )}
-        {email && isEmailAvailable && (
-          <Text style={{ color: "green" }}>사용 가능한 이메일입니다.</Text>
-        )}
-      </View>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>
-          비밀번호(영문,숫자,특수문자를 포함해주세요)
-        </Text>
-        <View style={styles.usernameContainer}>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={handleCheckPassword}
-            secureTextEntry={true}
-            placeholder="비밀번호를 입력하세요(11~20자)"
-          />
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>
+            비밀번호(영문,숫자,특수문자를 포함해주세요)
+          </Text>
+          <View style={styles.usernameContainer}>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={handleCheckPassword}
+              secureTextEntry={true}
+              placeholder="비밀번호를 입력하세요(11~20자)"
+            />
+          </View>
+          {!password && (
+            <Text style={{ color: "red" }}>비밀번호를 입력해주세요.</Text>
+          )}
+          {password && !isPasswordAvailable && (
+            <Text style={{ color: "red" }}>사용 불가능한 비밀번호입니다.</Text>
+          )}
+          {password && isPasswordAvailable && (
+            <Text style={{ color: "green" }}>사용 가능한 비밀번호입니다.</Text>
+          )}
         </View>
-        {!password && (
-          <Text style={{ color: "red" }}>비밀번호를 입력해주세요.</Text>
-        )}
-        {password && !isPasswordAvailable && (
-          <Text style={{ color: "red" }}>사용 불가능한 비밀번호입니다.</Text>
-        )}
-        {password && isPasswordAvailable && (
-          <Text style={{ color: "green" }}>사용 가능한 비밀번호입니다.</Text>
-        )}
-      </View>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>이름(영문,숫자,한글만 입력해주세요)</Text>
-        <View style={styles.usernameContainer}>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={handleNameValid}
-            placeholder="이름을 입력하세요(1~10자)"
-          />
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>이름(영문,숫자,한글만 입력해주세요)</Text>
+          <View style={styles.usernameContainer}>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={handleNameValid}
+              placeholder="이름을 입력하세요(1~10자)"
+            />
+          </View>
+          {!name && (
+            <Text style={{ color: "red" }}>닉네임을 입력해주세요.</Text>
+          )}
+          {name && !isNameAvailable && (
+            <Text style={{ color: "red" }}>사용 불가능한 닉네임입니다.</Text>
+          )}
+          {name && isNameAvailable && (
+            <Text style={{ color: "green" }}>사용 가능한 닉네임입니다.</Text>
+          )}
         </View>
-        {!name && <Text style={{ color: "red" }}>닉네임을 입력해주세요.</Text>}
-        {name && !isNameAvailable && (
-          <Text style={{ color: "red" }}>사용 불가능한 닉네임입니다.</Text>
-        )}
-        {name && isNameAvailable && (
-          <Text style={{ color: "green" }}>사용 가능한 닉네임입니다.</Text>
-        )}
-      </View>
-      <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-        <Text style={styles.signupButtonText}>회원가입</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+          <Text style={styles.signupButtonText}>회원가입</Text>
+        </TouchableOpacity>
       </View>
     </ImageBackground>
   );
@@ -196,10 +203,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   contentContainer: {
-    width:370,
-    paddingHorizontal:20,
-    paddingVertical:20,
-    borderRadius:15,
+    width: 370,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderRadius: 15,
     backgroundColor: "#ffffff",
     elevation: 5,
   },

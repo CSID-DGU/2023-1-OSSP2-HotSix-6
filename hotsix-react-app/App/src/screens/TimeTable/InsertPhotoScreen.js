@@ -17,7 +17,7 @@ import { Menu } from "react-native-paper"; // 변경
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 const InsertPhotoScreen = ({ navigation, route }) => {
-  const SERVER_URL = "http://192.168.242.164:8000"; // 백엔드 서버 주소로 변경해야함
+  const SERVER_URL = "http://192.168.242.24:8000"; // 백엔드 서버 주소로 변경해야함
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedHour, setSelectedHour] = useState(null); // 변경
@@ -81,15 +81,15 @@ const InsertPhotoScreen = ({ navigation, route }) => {
         const Response = await axios.get(
           `${SERVER_URL}/user/view-time-table/?jwt=${encodeURIComponent(jwt)}`
         );
-        // /user/view-time-table/ 이거로 이메일이랑 같이 보내기 -> 배열 데이터 받기
 
         const imageData = Response.data.time_table;
-        //console.log(imageData);
         setTimeout(() => {
           console.log("이미지 데이터", imageData);
         }, 5000);
         setSchedules(imageData);
-        console.log(typeof imageData);
+        setTimeout(() => {
+          console.log("이미지 데이터", imageData);
+        }, 5000);
 
         // 전송이 완료됐다면 다시 Timetable로 이동.
         if (Response.status === 200) {

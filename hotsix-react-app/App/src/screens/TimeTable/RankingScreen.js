@@ -20,7 +20,7 @@ const RankingScreen = () => {
   const { schedules } = route.params;
   const [events, setEvents] = useState([]);
   const [selectedEvents, setSelectedEvents] = useState([]);
-  const SERVER_URL = "http://192.168.242.164:8000";
+  const SERVER_URL = "http://192.168.242.24:8000";
   const { jwt } = route.params;
 
   const getTimeIndex = (time) => {
@@ -126,6 +126,7 @@ const RankingScreen = () => {
 
     // 데이터 값 뽑아서 각각 startTime, endTime, Date1 에 저장
     const createEvent = (start, end, i) => {
+      setTimeout(() => {}, 10000);
       const date = new Date("2023-05-01T00:00:00.000Z");
       const startTime = addMinutes(date, start);
       const endTime = addMinutes(date, end);

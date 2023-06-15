@@ -12,53 +12,67 @@ import TimeTable, { generateTimeTableData } from "react-native-timetable";
 import { addMinutes } from "date-fns";
 import moment from "moment";
 import axios from "axios";
-
 //시간표를 누르면 그것들을 배열에 추가하거나 제거한다.
-const SERVER_URL = "http://192.168.242.164:8000";
 
-const GroupTimeTableScreen = ({ route, navigation }) => {
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      title: group.group_name,
-      headerStyle: {
-        backgroundColor: "#3679A4",
-      },
-      headerTintColor: "#ffffff",
-      headerTitleStyle: {
-        fontWeight: "bold",
-      },
-    });
-  }, [navigation, group]);
-
+const GroupTimeTableScreen = () => {
+  const SERVER_URL = "http://192.168.203.24:8000";
+  const route = useRoute();
   //const { schedules } = route.params;
-  const [schedules, setSchedules] = useState([[]]);
-
-  const { jwt } = route.params;
-  const { group } = route.params;
   const [events, setEvents] = useState([]);
   const [selectedEvents, setSelectedEvents] = useState([]);
-  const groupcode = group.group_code;
-  console.log("groupcode", groupcode);
-
-  useEffect(() => {
-    const fetchTimeTable = async () => {
-      try {
-        const response = await axios.get(
-          `${SERVER_URL}/group/view-group-table/?jwt=${encodeURIComponent(
-            jwt
-          )}&group_code=${encodeURIComponent(groupcode)}`
-        );
-        //console.log("response", response);
-        const time_table = response.data.integrated_table;
-        console.log("time_table", time_table);
-        setSchedules(time_table);
-        setTimeout(() => {}, 5000);
-      } catch (error) {
-        console.error("Error fetching time table:", error);
-      }
-    };
-    fetchTimeTable();
-  }, [jwt]);
+  //const [schedules, setSchedules] = useState([[]]);
+  //const { groupCode } = route.params;
+  const schedules = [
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 0, 4, 6],
+    [0, 0, 2, 4, 1, 4, 6],
+    [0, 0, 1, 4, 1, 4, 6],
+    [1, 1, 1, 4, 1, 4, 6],
+    [1, 1, 1, 4, 1, 4, 6],
+    [1, 1, 2, 4, 1, 4, 6],
+    [0, 1, 2, 4, 1, 4, 6],
+    [0, 2, 0, 4, 0, 4, 6],
+    [1, 1, 1, 1, 0, 4, 6],
+    [1, 1, 1, 1, 1, 4, 6],
+    [1, 1, 1, 1, 1, 4, 6],
+    [1, 1, 1, 1, 1, 4, 6],
+    [0, 1, 1, 1, 1, 4, 6],
+    [1, 1, 1, 1, 0, 4, 6],
+    [1, 1, 1, 1, 0, 4, 6],
+    [1, 6, 1, 1, 0, 4, 6],
+    [1, 6, 0, 1, 1, 4, 6],
+    [1, 6, 0, 1, 2, 4, 6],
+    [1, 6, 1, 1, 2, 4, 6],
+    [1, 6, 1, 1, 2, 4, 6],
+    [1, 6, 1, 1, 2, 4, 6],
+    [1, 6, 1, 1, 2, 4, 6],
+    [0, 6, 1, 1, 2, 4, 6],
+    [0, 6, 0, 2, 2, 4, 6],
+    [0, 6, 0, 2, 2, 4, 6],
+    [0, 6, 0, 2, 2, 4, 6],
+    [0, 6, 0, 2, 2, 4, 6],
+    [0, 6, 0, 2, 2, 4, 6],
+    [0, 6, 0, 2, 2, 4, 6],
+    [0, 0, 0, 0, 0, 0, 0],
+  ];
+  //console.log(groupCode);
   const getTimeIndex = (time) => {
     const [hours, minutes] = time.split(":");
     const totalMinutes = parseInt(hours, 10) * 60 + parseInt(minutes, 10);
@@ -109,10 +123,32 @@ const GroupTimeTableScreen = ({ route, navigation }) => {
 
       schedule[day].push([str_idx, time_len]);
     });
-    console.log(schedule);
   };
+  //tests
 
+  // useEffect(() => {
+  //   const fetchSchedules = async () => {
+  //     try {
+  //       console.log("왜안돼");
+  //       setSchedules(test);
+  //       const response = await axios.get(
+  //         `${SERVER_URL}/group/view-group-table/${groupCode}`
+  //       );
+  //       if (response.status === 200) {
+  //         //setSchedules(response.data.integrated_table);
+  //       } else {
+  //         console.error("Failed to fetch schedules:", response);
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to fetch schedules:", error);
+  //     }
+  //   };
+  //   if (groupCode) {
+  //     fetchSchedules();
+  //   }
+  // }, [groupCode]);
   // 전 화면에서 schedules 받아서 시간표에서 "1" 공강으로 인식 시키기
+
   useEffect(() => {
     const handleTimetable = (schedules) => {
       const generatedEvents = [];
@@ -159,9 +195,9 @@ const GroupTimeTableScreen = ({ route, navigation }) => {
         value: val, // 추가: 스케줄 값도 이벤트 객체에 포함
       };
     };
-    console.log(schedules);
+
     handleTimetable(schedules);
-  }, [schedules]);
+  }, []);
 
   // 초기화
   const eventsFormatted = events.map((event) => {
@@ -203,12 +239,24 @@ const GroupTimeTableScreen = ({ route, navigation }) => {
             height: height,
             width: width,
             left: leftOffset,
-            backgroundColor: item.value === 0 ? `rgba(0, 0, 255, 0.2)` : "blue",
+            backgroundColor:
+              item.value === 0
+                ? `rgba(0, 0, 255, 0.2)`
+                : `rgba(0, 0, ${255 - item.value * 10}, ${
+                    item.value / 10 + 0.2
+                  })`,
           },
           isSelected ? styles.selectedEventButton : null,
         ]}
       >
         <Text style={styles.eventButtonText}>{viewdate}</Text>
+        <Text style={styles.eventButtonTextTwo}>
+          {item.value === 0
+            ? null
+            : item.value >= 2
+            ? `${item.value / 2}명`
+            : `${item.value}명`}
+        </Text>
       </TouchableOpacity>
     );
   };
@@ -244,9 +292,6 @@ const GroupTimeTableScreen = ({ route, navigation }) => {
           ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.checkButton}>
-        <Text style={styles.checkButtonText}>확인</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -311,8 +356,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     borderBottomWidth: 1,
     padding: 10,
-    backgroundColor: "#fff",
     zIndex: 100,
+    backgroundColor: "white",
   },
   timeText: {
     flex: 1,
@@ -355,6 +400,12 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+  },
+  eventButtonTextTwo: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 10,
   },
   selectedEventButton: {
     backgroundColor: "#0000ff",

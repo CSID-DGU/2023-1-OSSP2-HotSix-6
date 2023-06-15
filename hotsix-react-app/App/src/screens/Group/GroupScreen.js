@@ -12,7 +12,7 @@ import Modal from "react-native-modal";
 import axios from "axios";
 
 const GroupScreen = ({ route }) => {
-  const SERVER_URL = "http://192.168.242.164:8000";
+  const SERVER_URL = "http://192.168.242.24:8000";
   const navigation = useNavigation();
   const { email } = route.params;
   const { jwt } = route.params;
@@ -25,7 +25,8 @@ const GroupScreen = ({ route }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [isConfirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [isGroupMembersModalVisible, setGroupMembersModalVisible] = useState(false);
+  const [isGroupMembersModalVisible, setGroupMembersModalVisible] =
+    useState(false);
   const [groupMembers, setGroupMembers] = useState([]);
 
   useEffect(() => {
@@ -92,7 +93,11 @@ const GroupScreen = ({ route }) => {
 
   const showGroupMembers = (selectedGroup) => {
     axios
-      .get(`${SERVER_URL}/group/get-group-member/?group_code=${encodeURIComponent(selectedGroup.group_code)}&jwt=${encodeURIComponent(jwt)}`)
+      .get(
+        `${SERVER_URL}/group/get-group-member/?group_code=${encodeURIComponent(
+          selectedGroup.group_code
+        )}&jwt=${encodeURIComponent(jwt)}`
+      )
       .then((response) => {
         const members = response.data.member_list;
         console.log("맴버들 " + members);
@@ -141,9 +146,7 @@ const GroupScreen = ({ route }) => {
               </Text>
             </>
           )}
-          <TouchableOpacity
-            onPress={() => console.log("그룹 이름 수정하기")}
-          >
+          <TouchableOpacity onPress={() => console.log("그룹 이름 수정하기")}>
             <Text style={styles.modalOption}>그룹 이름 수정하기</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setConfirmModalVisible(true)}>
@@ -165,9 +168,7 @@ const GroupScreen = ({ route }) => {
             <TouchableOpacity onPress={leaveGroup}>
               <Text style={styles.modalButton}>확인</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setConfirmModalVisible(false)}
-            >
+            <TouchableOpacity onPress={() => setConfirmModalVisible(false)}>
               <Text style={styles.modalButton}>취소</Text>
             </TouchableOpacity>
           </View>
@@ -179,7 +180,7 @@ const GroupScreen = ({ route }) => {
           <Text style={styles.modalTitle}>그룹 멤버</Text>
           <FlatList
             data={groupMembers}
-            keyExtractor={( item, index) => index.toString()}
+            keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
               <View style={styles.memberItem}>
                 <Text style={styles.memberEmail}>{item}</Text>
@@ -190,7 +191,7 @@ const GroupScreen = ({ route }) => {
             <Text style={styles.modalClose}>닫기</Text>
           </TouchableOpacity>
         </View>
-      </Modal>     
+      </Modal>
     </View>
   );
 };
