@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Alert, StyleSheet, View, TouchableOpacity, Text,ImageBackground } from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
-import axios from 'axios';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {
+  Alert,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Text,
+  ImageBackground,
+} from "react-native";
+import * as DocumentPicker from "expo-document-picker";
+import axios from "axios";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-const SERVER_URL = 'http://192.168.242.164:8000'; //백엔드 서버 주소로 변경해야함 + 토큰 추가
+const SERVER_URL = "http://192.168.242.164:8000"; //백엔드 서버 주소로 변경해야함 + 토큰 추가
 
-const InsertIcsScreen = ( {route} ) => {
+const InsertIcsScreen = ({ route }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const { jwt } = route.params;
 
@@ -18,77 +25,93 @@ const InsertIcsScreen = ( {route} ) => {
   const handleFileSelection = async () => {
     try {
       const res = await DocumentPicker.getDocumentAsync({
-        type: 'text/calendar', // ICS 파일 
-        copyToCacheDirectory: false, 
-        multiple: false, 
+        type: "text/calendar", // ICS 파일
+        copyToCacheDirectory: false,
+        multiple: false,
       });
-  
-      if (res.type === 'success') {
+
+      if (res.type === "success") {
         setSelectedFile(res);
       } else {
-        console.log('파일 형식이 맞지 않습니다. .ics파일을 등록해주세요');
+        console.log("파일 형식이 맞지 않습니다. .ics파일을 등록해주세요");
       }
     } catch (error) {
       console.log(error);
     }
   };
-  
 
   //파일 업로드
+  //파일 업로드
   const handleUpload = async () => {
+    const help = jwt.toString();
     if (selectedFile) {
       try {
         const fileUri = selectedFile.uri;
         const formData = new FormData();
-        formData.append('file', {
+        formData.append("file", {
           uri: fileUri,
           name: selectedFile.name,
-          type: 'text/calendar',
+          type: "text/calendar",
+          jwt: jwt,
         });
 
+        const fileJson = JSON.stringify(formData["_parts"]);
+        console.log(fileJson);
+
+        const config = {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        };
+
         const response = await axios.put(
-          `${SERVER_URL}/user/ics-time-table/`,{
-            file: formData,
-            // {
-            //   headers: {
-            //     'Content-Type': 'multipart/form-data',
-            //   },
-            // }
-            jwt : jwt,
-          }
+          `${SERVER_URL}/user/ics-time-table/`,
+          formData,
+          config,
+          help
         );
 
         console.log(response.data);
-        Alert.alert('파일 전송 성공', '파일이 서버로 전송되었습니다.');
+        Alert.alert("파일 전송 성공", "파일이 서버로 전송되었습니다.");
       } catch (error) {
         console.log(error);
-        Alert.alert('파일 전송 실패', '파일을 서버로 전송하는 데 실패했습니다.');
+        Alert.alert(
+          "파일 전송 실패",
+          "파일을 서버로 전송하는 데 실패했습니다."
+        );
       }
     }
   };
-  
 
   return (
-    <ImageBackground source={require("hotsix-react-app/assets/backgroundimg2.png")} style={styles.container}>
-    <Text style={styles.Text}>캘린더파일로</Text>
-    <Text style={styles.loginButtonText}> 내 시간표를 등록해보세요! </Text>
+    <ImageBackground
+      source={require("hotsix-react-app/assets/backgroundimg2.png")}
+      style={styles.container}
+    >
+      <Text style={styles.Text}>캘린더파일로</Text>
+      <Text style={styles.loginButtonText}> 내 시간표를 등록해보세요! </Text>
       <View style={styles.contentContainer}>
-      <View style={styles.iconContainer}>
-
+        <View style={styles.iconContainer}>
           {selectedFile ? (
-            <MaterialCommunityIcons name="file-check-outline" style={styles.icon} />
-          ) : ( 
-            <MaterialCommunityIcons name="file-plus-outline" style={styles.icon} />
+            <MaterialCommunityIcons
+              name="file-check-outline"
+              style={styles.icon}
+            />
+          ) : (
+            <MaterialCommunityIcons
+              name="file-plus-outline"
+              style={styles.icon}
+            />
           )}
           {selectedFile && <Text>{selectedFile.name}</Text>}
           <TouchableOpacity onPress={handleFileSelection} style={styles.button}>
             <Text style={styles.buttonText}>.ics 파일 선택</Text>
           </TouchableOpacity>
-      </View>
-               
-      <TouchableOpacity onPress={handleUpload} style={styles.uploadButton}>
-        <Text style={styles.buttonText}>업로드</Text>
-      </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={handleUpload} style={styles.uploadButton}>
+          <Text style={styles.buttonText}>업로드</Text>
+        </TouchableOpacity>
       </View>
     </ImageBackground>
   );
@@ -97,66 +120,63 @@ const InsertIcsScreen = ( {route} ) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    backgroundColor : '#fff',
-    justifyContent:'center',
+    alignItems: "center",
+    backgroundColor: "#fff",
+    justifyContent: "center",
   },
   contentContainer: {
     justifyContent: "center",
     alignItems: "center",
     width: 300,
-    paddingHorizontal:10,
+    paddingHorizontal: 10,
     backgroundColor: "#ffffff",
   },
   imageContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   iconContainer: {
     width: 300,
     height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderStyle: 'dotted',
+    justifyContent: "center",
+    alignItems: "center",
+    borderStyle: "dotted",
     borderWidth: 3,
-    borderColor: 'gray',
+    borderColor: "gray",
   },
   icon: {
     fontSize: 90,
-    color: 'gray',
+    color: "gray",
     marginBottom: 10,
   },
   uploadButton: {
-    marginTop : 20,
+    marginTop: 20,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    backgroundColor: '#3679A4',
+    backgroundColor: "#3679A4",
     borderRadius: 5,
-    width : 300
+    width: 300,
   },
   buttonText: {
     fontSize: 16,
-    color: 'white',
-    textAlign : 'center',
+    color: "white",
+    textAlign: "center",
   },
   button: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#3679A4',
+    backgroundColor: "#3679A4",
     borderRadius: 5,
     marginTop: 10,
   },
   loginButtonText: {
     color: "#ffffff",
     fontSize: 25,
-    marginBottom:20,
+    marginBottom: 20,
   },
   Text: {
     color: "#ffffff",
     fontSize: 25,
-
   },
-
-
 });
 export default InsertIcsScreen;

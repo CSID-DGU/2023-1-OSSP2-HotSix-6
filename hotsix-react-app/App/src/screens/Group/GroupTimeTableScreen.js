@@ -12,31 +12,53 @@ import TimeTable, { generateTimeTableData } from "react-native-timetable";
 import { addMinutes } from "date-fns";
 import moment from "moment";
 import axios from "axios";
+
 //시간표를 누르면 그것들을 배열에 추가하거나 제거한다.
+const SERVER_URL = "http://192.168.242.164:8000";
 
-const GroupTimeTableScreen = () => {
-
+const GroupTimeTableScreen = ({ route, navigation }) => {
   React.useLayoutEffect(() => {
     navigation.setOptions({
       title: group.group_name,
       headerStyle: {
-        backgroundColor: '#3679A4',
+        backgroundColor: "#3679A4",
       },
-      headerTintColor: '#ffffff',
+      headerTintColor: "#ffffff",
       headerTitleStyle: {
-        fontWeight: 'bold',
+        fontWeight: "bold",
       },
     });
- }, [navigation, group]);
+  }, [navigation, group]);
 
+  //const { schedules } = route.params;
+  const [schedules, setSchedules] = useState([[]]);
 
-  const route = useRoute();
-  const { schedules } = route.params;
   const { jwt } = route.params;
   const { group } = route.params;
   const [events, setEvents] = useState([]);
   const [selectedEvents, setSelectedEvents] = useState([]);
+  const groupcode = group.group_code;
+  console.log("groupcode", groupcode);
 
+  useEffect(() => {
+    const fetchTimeTable = async () => {
+      try {
+        const response = await axios.get(
+          `${SERVER_URL}/group/view-group-table/?jwt=${encodeURIComponent(
+            jwt
+          )}&group_code=${encodeURIComponent(groupcode)}`
+        );
+        //console.log("response", response);
+        const time_table = response.data.integrated_table;
+        console.log("time_table", time_table);
+        setSchedules(time_table);
+        setTimeout(() => {}, 5000);
+      } catch (error) {
+        console.error("Error fetching time table:", error);
+      }
+    };
+    fetchTimeTable();
+  }, [jwt]);
   const getTimeIndex = (time) => {
     const [hours, minutes] = time.split(":");
     const totalMinutes = parseInt(hours, 10) * 60 + parseInt(minutes, 10);
@@ -127,8 +149,8 @@ const GroupTimeTableScreen = () => {
     // 데이터 값 뽑아서 각각 startTime, endTime, Date1 에 저장
     const createEvent = (start, end, i, val) => {
       const date = new Date("2023-05-01T00:00:00.000Z");
-      const startTime = addMinutes(date, start + 480);
-      const endTime = addMinutes(date, end + 480);
+      const startTime = addMinutes(date, start);
+      const endTime = addMinutes(date, end);
       const Date1 = i;
       return {
         startTime: startTime,
@@ -137,7 +159,7 @@ const GroupTimeTableScreen = () => {
         value: val, // 추가: 스케줄 값도 이벤트 객체에 포함
       };
     };
-
+    console.log(schedules);
     handleTimetable(schedules);
   }, [schedules]);
 
@@ -181,12 +203,7 @@ const GroupTimeTableScreen = () => {
             height: height,
             width: width,
             left: leftOffset,
-            backgroundColor:
-              item.value === 0
-                ? `rgba(0, 0, 255, 0.2)`
-                : `rgba(0, 0, ${255 - item.value * 10}, ${
-                    item.value / 10 + 0.2
-                  })`,
+            backgroundColor: item.value === 0 ? `rgba(0, 0, 255, 0.2)` : "blue",
           },
           isSelected ? styles.selectedEventButton : null,
         ]}
@@ -294,6 +311,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     borderBottomWidth: 1,
     padding: 10,
+    backgroundColor: "#fff",
+    zIndex: 100,
   },
   timeText: {
     flex: 1,

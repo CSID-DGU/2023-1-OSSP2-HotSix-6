@@ -31,7 +31,7 @@ const LoginScreen = ({ navigation }) => {
         // const cookies = response.headers["set-cookie"];
         // await AsyncStorage.setItem("cookies", JSON.stringify(cookies));
         setJwt(response.data.jwt);
-        setTimeout(() => {}, 5000);
+        //setTimeout(() => {}, 10000);
         navigation.navigate("Main", { jwt: jwt }, { email: email });
       } else if (response.status === 401) {
         //이메일 인증 완료 전일 때
