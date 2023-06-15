@@ -9,7 +9,7 @@ urlpatterns = [
     path('get-group-member/', views.getGroupMember, name="getGroupMember"),
 
     # path('view-group-table/<str:group_code>', views.ViewGroupTable.as_view(), name="ViewGroupTable"),
-    path('view-group-table/', views.ViewGroupTable.as_view(), name="ViewGroupTable"),
+    path('view-group-table/', views.ViewGroupTable, name="ViewGroupTable"),
     path('create-group-table/', views.create_group_table, name="create_group_table"),
     path('integrated-table/', views.integrate_table, name="integrate_table"),
     path('del-group-table/', views.del_group_table, name="del_group_table"),

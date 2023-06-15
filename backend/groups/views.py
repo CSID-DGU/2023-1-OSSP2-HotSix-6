@@ -11,7 +11,7 @@ from rest_framework import viewsets
 from urllib.parse import unquote
 from rest_framework.renderers import JSONRenderer
 
-from accounts.views import restore_time, add_prefer, compress_table, print_table, login_check, INIT_TIME_TABLE, INIT_PREFERENCE
+from accounts.views import restore_time, add_prefer, compress_table, print_table, login_check, INIT_TIME_TABLE, INIT_PREFERENCE, cookie_check ###
 from accounts.models import Group, GroupMember, GroupTimetable, Time, User, GroupTask, GroupNotice, GroupGoal
 from accounts.serializers import GroupDataSerializer, GroupMemberSerializer, GroupTimetableSerializer, UserDataSerializer, GroupTaskSerializer, GroupNoticeSerializer, GroupGoalSerializer
 from django.core.exceptions import ValidationError
@@ -76,6 +76,10 @@ def groupGenerate(request):
 
     res = Response(status=status.HTTP_201_CREATED)
     res.data = Group_Code
+
+    cgt = create_group_table(Group_Code)
+    if cgt is False:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     
     return res
 
@@ -163,16 +167,28 @@ def deleteGroup(request):
 
   
 # 그룹 멤버들의 시간표 조회
-class ViewGroupTable(GenericAPIView):
-    @login_check ###
-    def get(self, request, group_code):
+@api_view(['GET'])
+@login_check 
+def ViewGroupTable(request):
+    if request.method == 'GET':
+        group_code = request.GET.get('group_code')
+        group_code = unquote(group_code)
+        print(group_code)
         if Group.objects.filter(group_code=group_code).exists():
-            if GroupTimetable.objects.filter(group_code=group_code).exists():
+            check = integrate_table(group_code)
+
+            # if GroupTimetable.objects.filter(group_code=group_code).exists():
+            if check is True:
                 group = GroupTimetable.objects.get(group_code=group_code)
                 group_table = group.time_table
                 res_group_table = restore_group_time(group_table)
 
-                return Response({"integrated_table": res_group_table}, status=status.HTTP_200_OK)
+                res = Response(status=status.HTTP_200_OK)
+                res.data  = {
+                    "integrated_table" : res_group_table
+                }
+
+                return res
             else:
                 return Response(status=status.HTTP_404_NOT_FOUND)
         else:
@@ -180,42 +196,39 @@ class ViewGroupTable(GenericAPIView):
 
 
 # 그룹 시간표 초기화 (일정 없는 시간표 생성)
-@api_view(['POST'])
-@login_check
-def create_group_table(request):
-    if request.method == 'POST':
-        try:
-            reqData = request.data
-            post_group_code = reqData['group_code']
+# @api_view(['POST'])
+# @login_check
+# def create_group_table(request):
+#     if request.method == 'POST':
+def create_group_table(group_code):
+    post_group_code = group_code
 
-            z_table = compress_table(INIT_TIME_TABLE)
+    z_table = compress_table(INIT_TIME_TABLE)
 
-            if Group.objects.filter(group_code=post_group_code).exists():
-                input_data = {
-                    'group_code':post_group_code,
-                    'time_table':z_table
-                }
-                serializer = GroupTimetableSerializer(data=input_data)
+    if Group.objects.filter(group_code=post_group_code).exists():
+        input_data = {
+            'group_code':post_group_code,
+            'time_table':z_table
+        }
+        serializer = GroupTimetableSerializer(data=input_data)
 
-                if serializer.is_valid():
-                    serializer.save()
-                    return Response(status=status.HTTP_201_CREATED)
-                else: 
-                    return Response(status=status.HTTP_400_BAD_REQUEST) 
-            else:
-                return Response(status=status.HTTP_404_NOT_FOUND)
-        except:
-            return Response(status=status.HTTP_409_CONFLICT) 
+        if serializer.is_valid():
+            serializer.save()
+            return True
+        else: 
+            return False
+    else:
+        return False
         
 
 # 그룹 멤버들의 시간표를 통합
-@api_view(['PUT'])
-@login_check
-def integrate_table(request):
-    if request.method == 'PUT':
-        try:
-            reqData = request.data
-            post_group_code = reqData['group_code']
+# @api_view(['PUT'])
+# @login_check
+def integrate_table(group_code):
+    #if group_code.method == 'PUT':
+        # try:
+            # reqData = group_code.data
+            post_group_code = group_code
             
             if Group.objects.filter(group_code=post_group_code).exists():
                 if GroupMember.objects.filter(group_code=post_group_code).exists():
@@ -227,15 +240,15 @@ def integrate_table(request):
                         update_table = GroupTimetable.objects.get(group_code=post_group_code)
                         update_table.time_table = z_table
                         update_table.save()
-                        return Response(status=status.HTTP_202_ACCEPTED)
+                        return True
                     else:
-                        return Response(status=status.HTTP_400_BAD_REQUEST) # 잘못된 데이터 입력 받음
+                        return False
                 else:
-                    return Response(status=status.HTTP_404_NOT_FOUND) # 해당 사용자를 찾을 수 없음
+                    return False
             else:
-                return Response(status=status.HTTP_404_NOT_FOUND) # 해당 사용자를 찾을 수 없음
-        except:
-            return Response(status=status.HTTP_409_CONFLICT) 
+                return False
+        # except:
+        #     return Response(status=status.HTTP_409_CONFLICT) 
        
 @api_view(['DELETE'])
 @login_check
@@ -396,7 +409,8 @@ def restore_group_time(group_time_table):
 
 # group notice
 @api_view(['POST'])
-@login_check
+@cookie_check
+# @login_check
 def createNotice(request):
     if request.method == 'POST':
         reqData = request.data

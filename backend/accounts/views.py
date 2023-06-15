@@ -5,6 +5,8 @@ import datetime
 import zlib
 import os
 import base64 ###
+from django.utils import timezone
+import requests
 
 from .ics2binaryArr import ics_to_binary_array
 from .TimeTableController.ImageFile import file_to_image
@@ -43,6 +45,13 @@ INIT_TIME_TABLE = [[0 for _ in range(7)] for _ in range(48)] # 초기화 시간�
 INIT_PREFERENCE = {} # 초기화 우선 순위 딕셔너리
 
 
+# current date 'yyyy-mm-dd' format
+def current_date():
+    now = timezone.now()
+    date = now.strftime("%Y-%m-%d")
+    return date
+
+
 # 이메일 중복 확인
 @api_view(['POST'])
 def duplicateCheck(request):
@@ -58,36 +67,56 @@ def duplicateCheck(request):
 # 회원가입 시 DB에 data 저장
 @api_view(['POST'])
 def register(request):
-    print(request.data)
-
     reqData = request.data
+    email = reqData['email']
     password = reqData['password']
+    name = reqData['name']
+    join_date = current_date()
+    is_active = 0
     hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-    reqData['password'] = hashed_password.decode("utf-8")
+    # reqData['password'] = hashed_password.decode("utf-8")
+    password = hashed_password.decode("utf-8")
     
-    serializer = UserDataSerializer(data=reqData)
-    
-    if serializer.is_valid():
-        user  = serializer.save()
+    user = User(email=email, password=password, name=name, join_date=join_date, is_active=is_active)
+    user.save()
 
-        serializer.save()
+    current_site = get_current_site(request)
+    domain = current_site.domain
+
+    uidb64 = urlsafe_base64_encode(force_bytes(email))
+    token = account_activation_token.make_token(email)
+    message_data = message(domain, uidb64, token)
+
+    mail_title = "이메일 인증을 완료해주세요"
+    mail_to = email
+    authentication = EmailMessage(mail_title, message_data, to=[mail_to])
+    authentication.send()
+
+    return Response(status=status.HTTP_201_CREATED)
+
+    # serializer = UserDataSerializer(data=reqData)
+    
+    # if serializer.is_valid():
+    #     user  = serializer.save()
+
+    #     serializer.save()
         
-        user = reqData['email']
+    #     user = reqData['email']
 
-        current_site = get_current_site(request)
-        domain = current_site.domain
+    #     current_site = get_current_site(request)
+    #     domain = current_site.domain
 
-        uidb64 = urlsafe_base64_encode(force_bytes(user))
-        token = account_activation_token.make_token(user)
-        message_data = message(domain, uidb64, token)
+    #     uidb64 = urlsafe_base64_encode(force_bytes(user))
+    #     token = account_activation_token.make_token(user)
+    #     message_data = message(domain, uidb64, token)
 
-        mail_title = "이메일 인증을 완료해주세요"
-        mail_to = user
-        email = EmailMessage(mail_title, message_data, to=[mail_to])
-        email.send()
+    #     mail_title = "이메일 인증을 완료해주세요"
+    #     mail_to = user
+    #     email = EmailMessage(mail_title, message_data, to=[mail_to])
+    #     email.send()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class Activate(View):
@@ -107,10 +136,13 @@ class Activate(View):
 
 
 @api_view(['GET'])
-def is_active(request):
+def check_activate(request):
     email = unquote(request.GET.get('email'))
     active = User.objects.get(email=email)
     if active.is_active == True:
+        ctt = create_time_table(email)
+        if ctt is False:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_200_OK)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -176,6 +208,31 @@ def login(request):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+def cookie_check(func):
+    def wrapper(request, *args, **kwargs):
+        try:
+            access_token = request.COOKIES.get('jwt')
+
+            if not access_token:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            
+            payload = jwt.decode(access_token, SECRET_KEY, algorithms=['HS256'])
+
+            user = User.objects.get(pk=payload['email'])
+            serializer = UserDataSerializer(user)
+            
+            request.email = user.email
+
+        except jwt.ExpiredSignatureError:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        return func(request, *args, **kwargs)
+    return wrapper
+
+
 def login_check(func):
     def wrapper(request, *args, **kwargs):
         if request.method == 'POST' or request.method == 'PUT':
@@ -224,52 +281,68 @@ class ImageViewSet(viewsets.ModelViewSet):
 
 
 # 사용자 시간표 초기화 (일정 없는 시간표 및 값이 없는 우선순위 딕셔너리 생성)
-@api_view(['POST'])
-@login_check
-def create_time_table(request):
+# @api_view(['POST'])
+# @login_check
+def create_time_table(email):
     try:
-        if request.method == 'POST':
-            reqData = request.data
-            # post_email = reqData['email']
-            post_email = request.email
+        if User.objects.filter(email=email).exists():
+            z_table = compress_table(INIT_TIME_TABLE)
+            z_prefer = compress_prefer(INIT_PREFERENCE)
 
-            if User.objects.filter(email=post_email).exists():
-                z_table = compress_table(INIT_TIME_TABLE)
-                z_prefer = compress_prefer(INIT_PREFERENCE)
+            input_data = {
+                'email':email,
+                'time_table':z_table,
+                'preference':z_prefer
+            }
+            serializer = TimeDataSerializer(data=input_data)
 
-                input_data = {
-                    'email':post_email,
-                    'time_table':z_table,
-                    'preference':z_prefer
-                }
-                serializer = TimeDataSerializer(data=input_data)
+            if serializer.is_valid():
+                serializer.save()
 
-                if serializer.is_valid():
-                    serializer.save()
-                    return Response(status=status.HTTP_201_CREATED)
-                else:
-                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                return True
             else:
-                return Response(status=status.HTTP_404_NOT_FOUND) 
+                return False
+        else:
+            return False 
     except:
-        return Response(status=status.HTTP_409_CONFLICT)
+        return False
+
+# .ics 파일 입력 받기
+@api_view(['POST'])
+def save_ics_file(request):
+    if request.method == 'POST':
+        try:
+            reqData = request.data
+            file = reqData['file']
+
+            with open("./ics_files/ics_file.txt", 'wb') as f:
+                f.write(file.read())
+
+            return Response(status=status.HTTP_201_CREATED)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 # .ics 파일을 입력 받아 시간표 등록
 @api_view(['PUT'])
 @login_check
 def icsTimeTable(request):
     if request.method == 'PUT':
-        try:
+        # try:
             # 데이터 받기
             reqData = request.data
-            # post_email = reqData['email']
             post_email = request.email
-            post_file = reqData['file']
 
-            decode_file = post_file.read().decode() # 파일 읽기
-            file_lst = decode_file.split('\n') # 읽은 파일 분리
+            with open("./ics_files/ics_file.txt", 'rb') as f:
+                decode_file = f.readlines()
+            os.remove('./ics_files/ics_file.txt')
 
-            time_table, not_weekly_schedule = ics_to_binary_array(file_lst, INIT_TIME_TABLE) # 시간표 설정 및 (1개월 or 1년 or 하루) 주기 분리
+            if decode_file == []:
+                time_table = INIT_TIME_TABLE
+            else:
+                file_lst = [str.decode().replace('\n', '') for str in decode_file]
+                time_table, not_weekly_schedule = ics_to_binary_array(file_lst, INIT_TIME_TABLE) # 시간표 설정 및 (1개월 or 1년 or 하루) 주기 분리
+
             z_table = compress_table(time_table) # 시간표 및 우선 순위 데이터 압축
 
             # 사용자의 시간표 생성 후 데이터베이스에 저장
@@ -284,8 +357,8 @@ def icsTimeTable(request):
                     return Response(status=status.HTTP_400_BAD_REQUEST) # 잘못된 데이터 입력 받음
             else:
                 return Response(status=status.HTTP_404_NOT_FOUND) # 해당 사용자를 찾을 수 없음
-        except:
-            return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
+        # except:
+        #     return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
 
 
 # 이미지 파일을 입력 받아 시간표 등록
@@ -293,9 +366,9 @@ def icsTimeTable(request):
 @login_check
 def imgTimeTable(request):
     if request.method == 'PUT':
-        try:
+        # try:
             # 데이터 받기
-            reqData = request.data
+            # reqData = request.data
             #post_email = reqData['email']
             post_email = request.email
 
@@ -332,8 +405,8 @@ def imgTimeTable(request):
                     return Response(status=status.HTTP_400_BAD_REQUEST) # 잘못된 데이터 입력 받음
             else:
                 return Response(status=status.HTTP_404_NOT_FOUND) # 해당 사용자를 찾을 수 없음
-        except:
-            return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
+        # except:
+        #     return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
 
 
 # 텍스트를 입력 받아 시간표 등록
@@ -380,9 +453,10 @@ def text_time_table(request):
 @api_view(['PUT'])
 @login_check
 def preference(request):
-    try:
+    # try:
         if request.method == 'PUT':
             reqData = request.data
+            print(reqData)
             # post_email = reqData['email']
             post_email = request.email
             post_prefer = reqData['preference']
@@ -399,25 +473,43 @@ def preference(request):
                     return Response(status=status.HTTP_400_BAD_REQUEST) # 잘못된 데이터 입력 받음
             else:
                 return Response(status=status.HTTP_404_NOT_FOUND) # 해당 사용자를 찾을 수 없음
-    except:
-        return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
+    # except:
+    #     return Response(status=status.HTTP_409_CONFLICT)  # 에러 발생
     
 
-# 시간표 조회
-class ViewTimeTable(GenericAPIView):
-    @login_check
-    # def get(self, request, email):
-    def get(self, request):
-        email = request.email
-        if User.objects.filter(email=email).exists():
-            if not Time.objects.filter(email=email).exists():
-                return Response({"time_table":INIT_TIME_TABLE}, status=status.HTTP_204_NO_CONTENT)
-            else:
-                res_table, res_prefer = restore_time(email) # 시간표 및 우선순위 받아오기
-                res_table = add_prefer(res_table, res_prefer)
-                return Response({"time_table":res_table}, status=status.HTTP_200_OK) 
+# # 시간표 조회
+# class ViewTimeTable(GenericAPIView):
+#     @login_check
+#     # def get(self, request, email):
+#     def get(self, request):
+#         email = request.email
+#         if User.objects.filter(email=email).exists():
+#             if not Time.objects.filter(email=email).exists():
+#                 return Response({"time_table":INIT_TIME_TABLE}, status=status.HTTP_204_NO_CONTENT)
+#             else:
+#                 res_table, res_prefer = restore_time(email) # 시간표 및 우선순위 받아오기
+#                 res_table = add_prefer(res_table, res_prefer)
+#                 return Response({"time_table":res_table}, status=status.HTTP_200_OK) 
+#         else:
+#             return Response(status=status.HTTP_404_NOT_FOUND)
+        
+@api_view(['GET'])
+@login_check
+def viewTimeTable(request):
+    email = request.email
+    if User.objects.filter(email=email).exists():
+        if not Time.objects.filter(email=email).exists():
+            return Response({"time_table":INIT_TIME_TABLE}, status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            res_table, res_prefer = restore_time(email) # 시간표 및 우선순위 받아오기
+            res_table = add_prefer(res_table, res_prefer)
+
+            res = Response(status=status.HTTP_200_OK)
+            res.data = { "time_table" : res_table }
+
+            return res
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['DELETE'])
@@ -452,13 +544,15 @@ def img2arr(file):
 
 # 우선순위 배열에 추가하는 함수
 def add_prefer(time_table, prefer):
-    for prefer_key in prefer: 
-        start_idx = prefer[prefer_key][0]
-        end_idx = prefer[prefer_key][1] + start_idx
-        for time in range(start_idx, end_idx): # 우선순위 추가
-            day = KOREAN_DAYS.index(prefer_key)
-            if time_table[time][day] != 1: # 공강인 시간만 처리
-                time_table[time][day] = 2
+    for prefer_key in prefer:
+        prefer_arr = prefer[prefer_key]
+        for prefer_idx in prefer_arr:
+            start_idx = prefer_idx[0]
+            end_idx = prefer_idx[1] + start_idx
+            for time in range(start_idx, end_idx): # 우선순위 추가
+                day = KOREAN_DAYS.index(prefer_key)
+                if time_table[time][day] != 1: # 공강인 시간만 처리
+                    time_table[time][day] = 2
     return time_table
 
 
