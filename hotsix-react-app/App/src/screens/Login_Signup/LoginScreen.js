@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ImageBackground, Alert } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ImageBackground,
+  Alert,
+} from "react-native";
 import axios from "axios";
 import { handleVerification } from "./VerificationScreen";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SERVER_URL = "http://192.168.242.164:8000";
 
@@ -23,7 +31,8 @@ const LoginScreen = ({ navigation }) => {
         // const cookies = response.headers["set-cookie"];
         // await AsyncStorage.setItem("cookies", JSON.stringify(cookies));
         setJwt(response.data.jwt);
-        navigation.navigate("Main", { jwt: jwt }, { email : email });
+        setTimeout(() => {}, 5000);
+        navigation.navigate("Main", { jwt: jwt }, { email: email });
       } else if (response.status === 401) {
         //이메일 인증 완료 전일 때
         Alert.alert("로그인 실패. 이메일 인증을 완료해주세요");
@@ -42,7 +51,10 @@ const LoginScreen = ({ navigation }) => {
   }, [jwt]);
 
   return (
-    <ImageBackground source={require("hotsix-react-app/assets/backgroundimg1.png")} style={styles.container}>
+    <ImageBackground
+      source={require("hotsix-react-app/assets/backgroundimg1.png")}
+      style={styles.container}
+    >
       <View style={styles.contentContainer}>
         <Text style={styles.title}>로그인</Text>
         <TextInput
@@ -67,8 +79,6 @@ const LoginScreen = ({ navigation }) => {
         <TouchableOpacity>
           <Text style={styles.resetPasswordText}>비밀번호 찾기</Text>
         </TouchableOpacity>
-
-   
       </View>
     </ImageBackground>
   );
@@ -85,9 +95,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 300,
     marginTop: 120,
-    paddingHorizontal:10,
-    paddingVertical:20,
-    borderRadius:15,
+    paddingHorizontal: 10,
+    paddingVertical: 20,
+    borderRadius: 15,
     backgroundColor: "#ffffff",
     elevation: 5,
   },

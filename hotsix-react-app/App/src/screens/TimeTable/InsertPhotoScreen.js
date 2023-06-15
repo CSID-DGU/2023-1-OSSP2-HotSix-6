@@ -22,7 +22,7 @@ const InsertPhotoScreen = ({ navigation, route }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedHour, setSelectedHour] = useState(null); // 변경
   const [selectedMinute, setSelectedMinute] = useState(null); // 변경
-  const [schedules, setSchedules] = useState(null);
+  const [schedules, setSchedules] = useState([[]]);
   const { jwt } = route.params;
 
   useEffect(() => {
@@ -84,8 +84,12 @@ const InsertPhotoScreen = ({ navigation, route }) => {
         // /user/view-time-table/ 이거로 이메일이랑 같이 보내기 -> 배열 데이터 받기
 
         const imageData = Response.data.time_table;
-        console.log(imageData);
+        //console.log(imageData);
+        setTimeout(() => {
+          console.log("이미지 데이터", imageData);
+        }, 5000);
         setSchedules(imageData);
+        console.log(typeof imageData);
 
         // 전송이 완료됐다면 다시 Timetable로 이동.
         if (Response.status === 200) {
