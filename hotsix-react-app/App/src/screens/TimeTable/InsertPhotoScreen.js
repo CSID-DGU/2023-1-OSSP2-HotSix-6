@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { View, Button, Image, Alert, StyleSheet, Text, TouchableOpacity,ImageBackground } from "react-native";
+import {
+  View,
+  Button,
+  Image,
+  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  ImageBackground,
+} from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import axios from "axios";
 import { Menu } from "react-native-paper"; // 변경
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 const InsertPhotoScreen = ({ navigation, route }) => {
   const SERVER_URL = "http://192.168.242.164:8000"; // 백엔드 서버 주소로 변경해야함
@@ -19,10 +28,10 @@ const InsertPhotoScreen = ({ navigation, route }) => {
   useEffect(() => {
     console.log("jpg로 넣기 jwt:", jwt);
   }, [jwt]);
-  
+
   const selectImage = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
-    
+
     if (status !== "granted") {
       alert("카메라 권한이 필요합니다.");
       return;
@@ -58,16 +67,20 @@ const InsertPhotoScreen = ({ navigation, route }) => {
 
         // 첫 이미지 보내기
         const response = await axios.post(
-          `${SERVER_URL}/user/images/`, 
-            formData,
-            config,
+          `${SERVER_URL}/user/images/`,
+          formData,
+          config
         );
 
         const putResponse = await axios.put(
-          `${SERVER_URL}/user/img-time-table/`,jwt);
+          `${SERVER_URL}/user/img-time-table/`,
+          { jwt: jwt }
+        );
 
         // DB에 이미지 올리기 요청
-        const Response = await axios.get(`${SERVER_URL}/user/view-time-table/?jwt=${encodeURIComponent(jwt)}`);
+        const Response = await axios.get(
+          `${SERVER_URL}/user/view-time-table/?jwt=${encodeURIComponent(jwt)}`
+        );
         // /user/view-time-table/ 이거로 이메일이랑 같이 보내기 -> 배열 데이터 받기
 
         const imageData = Response.data.time_table;
@@ -75,13 +88,13 @@ const InsertPhotoScreen = ({ navigation, route }) => {
         setSchedules(imageData);
 
         // 전송이 완료됐다면 다시 Timetable로 이동.
-        if(Response.status === 200){
+        if (Response.status === 200) {
           Alert.alert(
             "이미지와 시간 전송 성공",
             "이미지와 시간이 서버로 전송되었습니다."
           );
-          console.log("죽여줘")
-          navigation.navigate("Ranking", {schedules, jwt})
+          console.log("죽여줘");
+          navigation.navigate("Ranking", { schedules, jwt });
         }
       } catch (error) {
         Alert.alert(
@@ -107,24 +120,28 @@ const InsertPhotoScreen = ({ navigation, route }) => {
   }
 
   return (
-    <ImageBackground source={require("hotsix-react-app/assets/backgroundimg2.png")} style={styles.container}>
+    <ImageBackground
+      source={require("hotsix-react-app/assets/backgroundimg2.png")}
+      style={styles.container}
+    >
       {!selectedImage && (
-
-      <View style={styles.container2}>
-      <Text style={styles.Text}>캘린더파일로</Text>
-      <Text style={styles.loginButtonText}> 내 시간표를 등록해보세요! </Text>
-        <View style={styles.iconContainer}>
-
-          <MaterialCommunityIcons name="file-plus-outline" style={styles.icon} />
-          <TouchableOpacity onPress={selectImage} style={styles.button}>
-            <Text style={styles.buttonText}>JPG 파일 선택</Text>
-          </TouchableOpacity>
-      </View>
-
-      </View>
-   
-
-    )}
+        <View style={styles.container2}>
+          <Text style={styles.Text}>캘린더파일로</Text>
+          <Text style={styles.loginButtonText}>
+            {" "}
+            내 시간표를 등록해보세요!{" "}
+          </Text>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="file-plus-outline"
+              style={styles.icon}
+            />
+            <TouchableOpacity onPress={selectImage} style={styles.button}>
+              <Text style={styles.buttonText}>JPG 파일 선택</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {selectedImage && (
         <View style={styles.imageContainer}>
@@ -157,7 +174,7 @@ const InsertPhotoScreen = ({ navigation, route }) => {
             ))}
           </Picker>
           <View style={styles.buttonContainer}>
-            <Button title="확인" onPress={sendImageToServer}  color="#F56D6D" />
+            <Button title="확인" onPress={sendImageToServer} color="#F56D6D" />
           </View>
         </View>
       )}
@@ -169,10 +186,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-
   },
   container2: {
-    width:'100%',
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -208,44 +224,42 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: "#ffffff",
     fontSize: 25,
-    marginBottom:20,
-    alignItems: "center"
+    marginBottom: 20,
+    alignItems: "center",
   },
   Text: {
     color: "#ffffff",
     fontSize: 25,
-    alignItems: "center"
-
+    alignItems: "center",
   },
   iconContainer: {
     width: 300,
     height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderStyle: 'dotted',
+    justifyContent: "center",
+    alignItems: "center",
+    borderStyle: "dotted",
     borderWidth: 3,
-    borderColor: 'gray',
+    borderColor: "gray",
     backgroundColor: "#ffffff",
   },
   icon: {
     fontSize: 90,
-    color: 'gray',
+    color: "gray",
     marginBottom: 10,
   },
 
   buttonText: {
     fontSize: 16,
-    color: 'white',
-    textAlign : 'center',
+    color: "white",
+    textAlign: "center",
   },
   button: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#3679A4',
+    backgroundColor: "#3679A4",
     borderRadius: 5,
     marginTop: 10,
   },
-
 });
 
 export default InsertPhotoScreen;
