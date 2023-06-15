@@ -6,6 +6,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import TimeTable, { generateTimeTableData } from "react-native-timetable";
@@ -19,11 +20,13 @@ const RankingScreen = () => {
   const { schedules } = route.params;
   const [events, setEvents] = useState([]);
   const [selectedEvents, setSelectedEvents] = useState([]);
+  const SERVER_URL = "http://192.168.242.164:8000";
+  const { jwt } = route.params;
 
   const getTimeIndex = (time) => {
     const [hours, minutes] = time.split(":");
     const totalMinutes = parseInt(hours, 10) * 60 + parseInt(minutes, 10);
-    return (totalMinutes - 480) / 30;
+    return totalMinutes / 30;
   };
 
   const handleEventPress = (index) => {
@@ -73,7 +76,7 @@ const RankingScreen = () => {
     console.log(schedule);
 
     axios
-      .post("http://172.30.1.52:8000/test/", schedule)
+      .put(`${SERVER_URL}/user/preference/`, { jwt: jwt, preference: schedule })
       .then((response) => {
         console.log(response);
         Alert.alert("백엔드로 데이터가 성공적으로 전송되었습니다.");
@@ -85,8 +88,13 @@ const RankingScreen = () => {
 
   // 전 화면에서 schedules 받아서 시간표에서 "1" 공강으로 인식 시키기
   useEffect(() => {
+    console.log("jwt", jwt);
+  }, [jwt]);
+
+  useEffect(() => {
     const handleTimetable = (schedules) => {
       const generatedEvents = [];
+      let startVal = 0;
       for (let i = 0; i < schedules[0].length; i++) {
         let start = null;
         let end = null;
@@ -94,12 +102,13 @@ const RankingScreen = () => {
         for (let j = 0; j < schedules.length; j++) {
           const row = schedules[j];
           const val = row[i];
-          if (val === 1 && start === null) {
+          if ((val === 0 || val >= 2) && start === null) {
+            startVal = val;
             start = j * 30;
             flag = true;
-          } else if (val === 0 && flag) {
+          } else if (val === 1 && flag) {
             end = (j - 1) * 30;
-            generatedEvents.push(createEvent(start, end, i));
+            generatedEvents.push(createEvent(start, end, i, startVal));
             start = null;
             end = null;
             flag = null;
@@ -107,7 +116,9 @@ const RankingScreen = () => {
         }
         if (start !== null) {
           end = (schedules.length - 1) * 30;
-          generatedEvents.push(createEvent(start, end, i));
+          generatedEvents.push(
+            createEvent(start, end, i, schedules[schedules.length - 1][i])
+          );
         }
       }
       setEvents(generatedEvents);
@@ -116,8 +127,8 @@ const RankingScreen = () => {
     // 데이터 값 뽑아서 각각 startTime, endTime, Date1 에 저장
     const createEvent = (start, end, i) => {
       const date = new Date("2023-05-01T00:00:00.000Z");
-      const startTime = addMinutes(date, start + 480);
-      const endTime = addMinutes(date, end + 480);
+      const startTime = addMinutes(date, start);
+      const endTime = addMinutes(date, end);
       const Date1 = i;
       return {
         startTime: startTime,
@@ -153,7 +164,8 @@ const RankingScreen = () => {
     const duration = (moment.duration(end.diff(start)).asMinutes() * 16) / 24;
     const topOffset = (start.hour() - 8) * 38 + start.minute();
     const height = duration;
-    const width = 44; // 버튼의 너비
+    const screenWidth = Dimensions.get("window").width;
+    const width = screenWidth / 8; // 버튼의 너비
     const leftOffset = width * Date1;
 
     const isSelected = selectedEvents.some((event) => event.index === index);
@@ -275,6 +287,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
     borderBottomWidth: 1,
     padding: 10,
+    zIndex: 999,
+    backgroundColor: "#fff",
   },
   timeText: {
     flex: 1,
@@ -307,9 +321,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     marginLeft: 4,
-    backgroundColor: "#3399ff",
+    backgroundColor: "#AECCDD",
     borderRadius: 5,
     padding: 5,
+    borderWidth: 1, // 테두리 너비 설정
+    borderColor: "white", // 테두리 색상 설정
   },
   eventButtonText: {
     color: "white",
@@ -317,7 +333,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   selectedEventButton: {
-    backgroundColor: "#0000ff",
+    backgroundColor: "#3483B0",
   },
   checkButton: {
     marginTop: 16,
