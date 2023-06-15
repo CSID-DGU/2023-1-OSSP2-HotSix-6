@@ -15,6 +15,7 @@ const InsertPhotoScreen = ({ navigation }) => {
   const [selectedMinute, setSelectedMinute] = useState(null); // 변경
   const [schedules, setschedules] = useState(null);
   
+  
   const selectImage = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     
@@ -76,7 +77,7 @@ const InsertPhotoScreen = ({ navigation }) => {
             "이미지와 시간 전송 성공",
             "이미지와 시간이 서버로 전송되었습니다."
           );
-          navigation.navigate("Timetable");
+          navigation.navigate("Register");
         }
       } catch (error) {
         Alert.alert(
@@ -106,7 +107,7 @@ const InsertPhotoScreen = ({ navigation }) => {
       {!selectedImage && (
 
       <View style={styles.container2}>
-      <Text style={styles.Text}>캘린더파일로</Text>
+      <Text style={styles.Text}>에브리타임시간표 이미지로</Text>
       <Text style={styles.loginButtonText}> 내 시간표를 등록해보세요! </Text>
         <View style={styles.iconContainer}>
 
