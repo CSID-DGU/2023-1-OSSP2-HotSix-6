@@ -107,7 +107,7 @@ const InsertPhotoScreen = ({ navigation }) => {
       {!selectedImage && (
 
       <View style={styles.container2}>
-      <Text style={styles.Text}>캘린더파일로</Text>
+      <Text style={styles.Text}>에브리타임시간표 이미지로</Text>
       <Text style={styles.loginButtonText}> 내 시간표를 등록해보세요! </Text>
         <View style={styles.iconContainer}>
 

@@ -11,7 +11,35 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
 
   const handleLoginButtonPress = async () => {
-    // 로그인 처리 로직...
+    try {
+      const response = await axios.post(`${SERVER_URL}/user/login/`, {
+        email: email,
+        password: password,
+      });
+
+      if (response.status === 200) {
+
+        // 쿠키 설정
+        //const token = response.data.token;
+        //await AsyncStorage.setItem('authToken', token);
+        // headers: {'Cookie': `authToken=${token}`, // 쿠키 값 포함해서 이런식으로 사용?
+      
+
+
+        Alert.alert("로그인 성공!");
+        console.log("JWT:", response.data.jwt);
+        navigation.navigate("Main");
+      } else if (response.status === 401) {
+        //이메일 인증 완료 전일 때
+        Alert.alert("로그인 실패. 이메일 인증을 완료해주세요");
+        navigation.navigate("Verification", { email: email });
+        handleVerification(); //이메일 재전송 요청
+      } else {
+        Alert.alert("로그인 실패. 아이디와 패스워드를 확인해주세요.");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
