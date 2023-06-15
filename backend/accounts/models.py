@@ -123,3 +123,7 @@ class Time(models.Model):
 class Image(models.Model):
     image = models.ImageField(upload_to='images/') # 이미지가 저장될 위치
     time = models.CharField(max_length=5) # 시간
+# 이미지 처리
+class Image(models.Model):
+    image = models.ImageField(upload_to='images/') # 이미지가 저장될 위치
+    time = models.CharField(max_length=5) # 시간
